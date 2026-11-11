@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MedCare | Verificación en dos pasos</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232864e8'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E"><link rel="stylesheet" th:href="@{/styles.css}"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2864e8"><link rel="apple-touch-icon" href="/img/icon-192.png"><script>(function(){var R=document.documentElement;try{var t=localStorage.getItem('medcare-tema');if(t)R.setAttribute('data-theme',t)}catch(e){}function sync(){var d=R.getAttribute('data-theme')==='dark';var b=document.querySelectorAll('[data-theme-toggle]');for(var i=0;i<b.length;i++){b[i].setAttribute('aria-pressed',String(d));var s=b[i].querySelector('span');if(s)s.textContent=d?'Modo claro':'Modo oscuro'}}document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('medcare-tema',n)}catch(x){}sync()});document.addEventListener('DOMContentLoaded',sync)})()</script></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<section class="auth-form solo-page" id="contenido">
+  <form class="dialog solo" th:action="@{/login/2fa}" method="post">
+    <div class="brand"><b>✚</b><span><strong>MedCare</strong><small>Gestión clínica</small></span></div>
+    <small class="kicker">SEGURIDAD</small>
+    <h2>Verificación en dos pasos</h2>
+    <p class="notice">Abre tu app autenticadora (Google Authenticator, Microsoft Authenticator o Authy) y escribe el código de 6 dígitos de <b>MedCare</b>.</p>
+    <div class="alert" role="alert" th:if="${error}" th:text="${error}">Error</div>
+    <label for="codigo">Código de 6 dígitos</label>
+    <input id="codigo" name="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="7" pattern="[0-9 ]{6,7}" required autofocus class="codigo">
+    <button class="primary">Verificar</button>
+  </form>
+  <form th:action="@{/logout}" method="post" class="back-out"><button class="linklike" type="submit">← Cancelar y salir</button></form>
+</section>
+<script th:src="@{/script.js}"></script>
+</body>
+</html>

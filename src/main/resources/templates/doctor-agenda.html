@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MedCare | Mi agenda</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232864e8'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E"><link rel="stylesheet" th:href="@{/styles.css}"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2864e8"><link rel="apple-touch-icon" href="/img/icon-192.png"><script>(function(){var R=document.documentElement;try{var t=localStorage.getItem('medcare-tema');if(t)R.setAttribute('data-theme',t)}catch(e){}function sync(){var d=R.getAttribute('data-theme')==='dark';var b=document.querySelectorAll('[data-theme-toggle]');for(var i=0;i<b.length;i++){b[i].setAttribute('aria-pressed',String(d));var s=b[i].querySelector('span');if(s)s.textContent=d?'Modo claro':'Modo oscuro'}}document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('medcare-tema',n)}catch(x){}sync()});document.addEventListener('DOMContentLoaded',sync)})()</script></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<aside th:replace="~{fragments :: sidebarDoctor('agenda')}"></aside>
+<main id="contenido">
+<header>
+  <div class="crumb"><button th:replace="~{fragments :: menuBtn}"></button><span>Doctor　/　<strong>Mi agenda</strong></span></div>
+  <span id="today"></span>
+</header>
+
+<section class="heading">
+  <div><small class="kicker">MI AGENDA</small><h1 th:text="${doctor.nombre}">Dr. Ramírez</h1><p th:text="|${doctor.especialidad} · ${doctor.resumenDias()} · ${#temporals.format(doctor.inicio,'HH:mm')}–${#temporals.format(doctor.fin,'HH:mm')}|">Cardiología</p></div>
+  <a class="secondary" th:href="@{/doctor/bloqueos}">Bloquear días</a>
+</section>
+
+<section class="stats" aria-label="Resumen del día">
+  <article><label>Citas del día</label><div class="number" th:text="${#lists.size(citas)}">0</div><small>Sin contar las canceladas</small></article>
+  <article><label>Por atender</label><div class="number" th:text="${porAtender}">0</div><small>Pendientes de atención</small></article>
+  <article><label>Atendidas</label><div class="number" th:text="${atendidas}">0</div><small>Con diagnóstico registrado</small></article>
+  <article><label>Próximos 7 días</label><div class="number" th:text="${proximas}">0</div><small>Citas activas</small></article>
+</section>
+
+<article class="panel">
+  <div class="panelhead">
+    <div><h2 th:text="${#temporals.format(fecha,'EEEE dd MMM yyyy')}">viernes 16 oct. 2026</h2><p th:unless="${atiende}">Hoy no es uno de tus días de atención.</p></div>
+    <nav class="daynav" aria-label="Cambiar de día">
+      <a class="secondary" th:href="@{/doctor/agenda(fecha=${anterior})}">← Día anterior</a>
+      <a class="secondary" th:href="@{/doctor/agenda(fecha=${hoy})}">Hoy</a>
+      <a class="secondary" th:href="@{/doctor/agenda(fecha=${siguiente})}">Día siguiente →</a>
+    </nav>
+  </div>
+  <div class="scroll"><table>
+    <caption class="sr-only">Citas del día</caption>
+    <thead><tr><th scope="col">HORA</th><th scope="col">PACIENTE</th><th scope="col">ESTADO</th><th scope="col">ACCIONES</th></tr></thead>
+    <tbody>
+      <tr th:each="c : ${citas}">
+        <td data-label="Hora"><strong th:text="${#temporals.format(c.hora,'HH:mm')} + ' h'">09:00 h</strong></td>
+        <td data-label="Paciente"><div><span th:text="${c.paciente.name}">Paciente</span>
+          <small th:text="|DNI ${c.paciente.dni} · ${c.paciente.phone}|">DNI</small>
+          <small th:if="${c.familiar != null}" th:text="|Atendido: ${c.familiar}|">Atendido</small>
+          <small th:if="${c.virtual}">Videollamada</small><small th:if="${!c.virtual and c.consultorio != null}" th:text="|Consultorio ${c.consultorio}|">Consultorio</small><small class="sobre" th:if="${c.sobreturno}">Sobreturno</small>
+          <small class="alergia" th:if="${c.paciente.alergias != null}" th:text="|Alergias: ${c.paciente.alergias}|">Alergias</small></div></td>
+        <td data-label="Estado"><span th:class="${c.claseEstado}" th:text="${c.estado}">Pendiente</span></td>
+        <td data-label="Acciones"><div class="acts">
+          <form th:if="${c.estado == 'Pendiente'}" th:action="@{/doctor/citas/{id}/confirmar(id=${c.id})}" method="post"><button class="btn-ok">Confirmar</button></form>
+          <a class="btn-edit" th:if="${c.virtual and c.activa and c.enlaceVirtual != null}" th:href="${c.enlaceVirtual}" target="_blank" rel="noopener">Videollamada</a>
+          <a class="btn-edit" th:if="${c.atendible}" th:href="@{/doctor/citas/{id}/atencion(id=${c.id})}" th:text="${c.atendida} ? 'Ver atención' : 'Atender'">Atender</a>
+          <form th:if="${c.activa}" th:action="@{/doctor/citas/{id}/cancelar(id=${c.id})}" method="post" data-confirm="¿Cancelar esta cita? Se avisará al paciente si dejó su correo."><button class="btn-del">Cancelar</button></form>
+        </div></td>
+      </tr>
+      <tr class="empty-row" th:if="${#lists.isEmpty(citas)}"><td colspan="4">No tienes citas este día.</td></tr>
+    </tbody>
+  </table></div>
+</article>
+
+<footer class="bottom">© 2026 MedCare · Sistema de gestión de pacientes <span>Maqueta académica · Datos ficticios</span></footer>
+</main>
+<div th:replace="~{fragments :: avisos}"></div>
+<script th:src="@{/script.js}"></script>
+</body>
+</html>

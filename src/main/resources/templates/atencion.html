@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MedCare | Atención</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232864e8'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E"><link rel="stylesheet" th:href="@{/styles.css}"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2864e8"><link rel="apple-touch-icon" href="/img/icon-192.png"><script>(function(){var R=document.documentElement;try{var t=localStorage.getItem('medcare-tema');if(t)R.setAttribute('data-theme',t)}catch(e){}function sync(){var d=R.getAttribute('data-theme')==='dark';var b=document.querySelectorAll('[data-theme-toggle]');for(var i=0;i<b.length;i++){b[i].setAttribute('aria-pressed',String(d));var s=b[i].querySelector('span');if(s)s.textContent=d?'Modo claro':'Modo oscuro'}}document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('medcare-tema',n)}catch(x){}sync()});document.addEventListener('DOMContentLoaded',sync)})()</script></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<aside th:replace="${base == '/doctor'} ? ~{fragments :: sidebarDoctor('agenda')} : ~{fragments :: sidebarAdmin('citas')}"></aside>
+<main id="contenido">
+<header>
+  <div class="crumb"><button th:replace="~{fragments :: menuBtn}"></button><span>Citas　/　<strong>Registrar atención</strong></span></div>
+  <span id="today"></span>
+</header>
+
+<div class="formwrap">
+<form class="dialog" th:action="@{${accionUrl}}" method="post">
+  <div class="panelhead"><div><small class="kicker">HISTORIAL CLÍNICO</small><h2>Registrar atención</h2></div><a class="x" th:href="@{${volverUrl}}" aria-label="Cerrar y volver">×</a></div>
+  <div class="datos resumen-cita">
+    <div>Paciente<strong th:text="${cita.paciente.name}">Paciente</strong></div>
+    <div>Cita<strong th:text="|${#temporals.format(cita.fecha,'dd MMM yyyy')} · ${#temporals.format(cita.hora,'HH:mm')} h|">fecha</strong></div>
+    <div>Doctor<strong th:text="|${cita.doctor} · ${cita.especialidad}|">Doctor</strong></div>
+    <div th:if="${cita.familiar != null}">Atendido<strong th:text="${cita.familiar}">Familiar</strong></div>
+    <div th:if="${cita.virtual}">Modalidad<strong>Videollamada</strong></div>
+    <div th:unless="${cita.virtual}">Modalidad<strong th:text="${cita.consultorio != null} ? |Presencial · ${cita.consultorio}| : 'Presencial'">Presencial</strong></div>
+    <div th:if="${cita.virtual and cita.enlaceVirtual != null}">Sala virtual<strong><a th:href="${cita.enlaceVirtual}" target="_blank" rel="noopener">Abrir videollamada</a></strong></div>
+  </div>
+  <div class="triaje" th:if="${cita.triaje != null}">
+    <small class="kicker">LO QUE CUENTA EL PACIENTE (TRIAJE)</small>
+    <p th:text="${cita.triaje}">Síntomas</p>
+  </div>
+  <fieldset class="ficha">
+    <legend>Ficha clínica del paciente</legend>
+    <label>Alergias
+      <input name="alergias" maxlength="300" th:value="${cita.paciente.alergias}" placeholder="Ej. Penicilina. Dejar vacío si no tiene">
+    </label>
+    <label>Antecedentes
+      <textarea name="antecedentes" rows="2" maxlength="500" placeholder="Enfermedades previas, cirugías, medicación habitual" th:text="${cita.paciente.antecedentes}"></textarea>
+    </label>
+    <div class="two">
+      <label>Peso (kg)<input name="peso" inputmode="decimal" maxlength="6" th:value="${cita.paciente.peso}" placeholder="Ej. 68.5"></label>
+      <label>Talla (cm)<input name="talla" inputmode="numeric" maxlength="3" th:value="${cita.paciente.talla}" placeholder="Ej. 165"></label>
+    </div>
+  </fieldset>
+  <label th:if="${!#lists.isEmpty(plantillas)}">Usar una plantilla de receta
+    <select id="plantillaSel">
+      <option value="">— Elegir plantilla (opcional) —</option>
+      <option th:each="p : ${plantillas}" th:value="${p.id}" th:text="${p.titulo}" th:attr="data-cie=${p.cie10},data-dx=${p.diagnostico},data-rx=${p.receta}">Resfriado</option>
+    </select>
+  </label>
+  <label>Diagnóstico
+    <textarea name="diagnostico" id="dx" rows="3" maxlength="1000" placeholder="Ej. Faringitis aguda leve" th:text="${cita.diagnostico}"></textarea>
+  </label>
+  <div class="two">
+    <label>Código CIE-10 (opcional)
+      <input name="cie10" id="cie" list="cie10lista" maxlength="10" autocomplete="off" th:value="${cita.cie10}" placeholder="Ej. J02.9">
+      <datalist id="cie10lista"><option th:each="c : ${cie10}" th:value="${c.codigo}" th:text="${c.nombre}">J02.9</option></datalist>
+    </label>
+    <label>Pedir control en (días)
+      <input name="controlDias" inputmode="numeric" maxlength="3" th:value="${cita.controlDias}" placeholder="Ej. 15 (vacío = sin control)">
+    </label>
+  </div>
+  <label>Receta e indicaciones
+    <textarea name="receta" id="rx" rows="6" maxlength="2000" placeholder="Medicamento, dosis y duración. Indicaciones de cuidado." th:text="${cita.receta}"></textarea>
+  </label>
+  <p class="notice">Al guardar, la cita pasa a <b>Atendida</b> y el paciente podrá ver su diagnóstico y descargar la receta en PDF desde su portal. Usa solo datos ficticios.</p>
+  <div class="actions"><a class="secondary" th:href="@{${volverUrl}}">Cancelar</a><button class="primary">Guardar atención</button></div>
+</form>
+
+<section class="dialog exsec" aria-label="Exámenes y archivos">
+  <div class="panelhead"><div><small class="kicker">ESTUDIOS</small><h2>Exámenes y archivos</h2></div></div>
+  <div th:replace="~{fragments :: examenes(${examenes}, ${examenUrl}, ${subirUrl}, ${borrarUrl}, ${base == '/doctor' ? 'Doctor' : 'ninguno'}, 3)}"></div>
+</section>
+
+<section class="dialog exsec" id="chat" aria-label="Chat con el paciente">
+  <div class="panelhead"><div><small class="kicker">MENSAJES</small><h2>Chat con el paciente</h2></div></div>
+  <ul class="chatlist" th:unless="${#lists.isEmpty(mensajes)}">
+    <li th:each="m : ${mensajes}" th:classappend="${m.delPaciente} ? 'pac' : 'doc'">
+      <p th:text="${m.texto}">Mensaje</p>
+      <small th:text="|${m.autor} · ${#temporals.format(m.fecha,'dd MMM HH:mm')}|">Paciente · 10:00</small>
+    </li>
+  </ul>
+  <p class="exvacio" th:if="${#lists.isEmpty(mensajes)}">Todavía no hay mensajes.</p>
+  <form th:if="${chatUrl != null}" class="chatform" th:action="@{${chatUrl}}" method="post">
+    <input name="texto" maxlength="500" required placeholder="Escribe una respuesta (máx. 500 caracteres)" aria-label="Mensaje para el paciente" autocomplete="off">
+    <button class="primary">Enviar</button>
+  </form>
+  <p class="exvacio" th:unless="${chatUrl != null}">Solo el doctor responde en el chat; aquí puedes leerlo.</p>
+</section>
+
+<section class="dialog exsec" th:if="${cita.activa and cita.fecha.atTime(cita.hora).isBefore(T(java.time.LocalDateTime).now())}" aria-label="Inasistencia">
+  <div class="panelhead"><div><small class="kicker">CONTROL</small><h2>¿El paciente no llegó?</h2></div></div>
+  <form th:action="@{${noAsistioUrl}}" method="post" data-confirm="¿Marcar que el paciente no asistió?">
+    <p class="exvacio">Si no vino a su cita, márcalo para que quede en los reportes de inasistencia.</p>
+    <button class="btn-del">Marcar “No asistió”</button>
+  </form>
+</section>
+</div>
+
+<footer class="bottom">© 2026 MedCare · Sistema de gestión de pacientes <span>Maqueta académica · Datos ficticios</span></footer>
+</main>
+<div th:replace="~{fragments :: avisos}"></div>
+<script th:src="@{/script.js}"></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MedCare | Lista de espera</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232864e8'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E"><link rel="stylesheet" th:href="@{/styles.css}"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2864e8"><link rel="apple-touch-icon" href="/img/icon-192.png"><script>(function(){var R=document.documentElement;try{var t=localStorage.getItem('medcare-tema');if(t)R.setAttribute('data-theme',t)}catch(e){}function sync(){var d=R.getAttribute('data-theme')==='dark';var b=document.querySelectorAll('[data-theme-toggle]');for(var i=0;i<b.length;i++){b[i].setAttribute('aria-pressed',String(d));var s=b[i].querySelector('span');if(s)s.textContent=d?'Modo claro':'Modo oscuro'}}document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('medcare-tema',n)}catch(x){}sync()});document.addEventListener('DOMContentLoaded',sync)})()</script></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<aside th:replace="~{fragments :: sidebarAdmin('espera')}"></aside>
+<main id="contenido">
+<header>
+  <div class="crumb"><button th:replace="~{fragments :: menuBtn}"></button><span>Citas　/　<strong>Lista de espera</strong></span></div>
+  <span id="today"></span>
+</header>
+
+<section class="heading">
+  <div><small class="kicker">DEMANDA</small><h1>Lista de espera</h1><p>Personas que no encontraron horario y pidieron que les avisemos. Se les escribe solas cuando se libera un horario (si dejaron correo).</p></div>
+</section>
+<article class="panel">
+  <div class="scroll"><table>
+    <caption class="sr-only">Lista de espera</caption>
+    <thead><tr><th scope="col">PERSONA</th><th scope="col">DOCTOR Y FECHA</th><th scope="col">CONTACTO</th><th scope="col">ESTADO</th><th scope="col">ACCIONES</th></tr></thead>
+    <tbody>
+      <tr th:each="e : ${espera}">
+        <td data-label="Persona"><div><span th:text="${e.nombre}">Nombre</span><small th:text="|DNI ${e.dni}|">DNI</small></div></td>
+        <td data-label="Doctor y fecha"><div><span th:text="${e.doctor}">Dr.</span><small th:text="${#temporals.format(e.fecha,'EEEE dd MMM yyyy')}">fecha</small></div></td>
+        <td data-label="Contacto"><div><span th:text="${e.telefono}">999</span><small th:text="${e.email != null} ? ${e.email} : 'Sin correo: llamar'">correo</small></div></td>
+        <td data-label="Estado"><span th:class="${e.avisada} ? 'ok' : 'wait'" th:text="${e.avisada} ? 'Avisada' : 'Esperando'">Esperando</span></td>
+        <td data-label="Acciones"><div class="acts">
+          <form th:action="@{/admin/espera/{id}/borrar(id=${e.id})}" method="post"><button class="btn-del">Quitar</button></form>
+        </div></td>
+      </tr>
+      <tr class="empty-row" th:if="${#lists.isEmpty(espera)}"><td colspan="5">Nadie está en lista de espera.</td></tr>
+    </tbody>
+  </table></div>
+</article>
+
+<footer class="bottom">© 2026 MedCare · Sistema de gestión de pacientes <span>Maqueta académica · Datos ficticios</span></footer>
+</main>
+<div th:replace="~{fragments :: avisos}"></div>
+<script th:src="@{/script.js}"></script>
+</body>
+</html>

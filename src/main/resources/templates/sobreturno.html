@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MedCare | Sobreturno</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232864e8'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E"><link rel="stylesheet" th:href="@{/styles.css}"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2864e8"><link rel="apple-touch-icon" href="/img/icon-192.png"><script>(function(){var R=document.documentElement;try{var t=localStorage.getItem('medcare-tema');if(t)R.setAttribute('data-theme',t)}catch(e){}function sync(){var d=R.getAttribute('data-theme')==='dark';var b=document.querySelectorAll('[data-theme-toggle]');for(var i=0;i<b.length;i++){b[i].setAttribute('aria-pressed',String(d));var s=b[i].querySelector('span');if(s)s.textContent=d?'Modo claro':'Modo oscuro'}}document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('medcare-tema',n)}catch(x){}sync()});document.addEventListener('DOMContentLoaded',sync)})()</script></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<aside th:replace="~{fragments :: sidebarAdmin('sobreturno')}"></aside>
+<main id="contenido">
+<header>
+  <div class="crumb"><button th:replace="~{fragments :: menuBtn}"></button><span>Citas　/　<strong>Sobreturno</strong></span></div>
+  <span id="today"></span>
+</header>
+
+<div class="formwrap">
+<form class="dialog" th:action="@{/admin/sobreturno}" method="post">
+  <div class="panelhead"><div><small class="kicker">AGENDA</small><h2>Agregar sobreturno</h2></div><a class="x" th:href="@{/admin/citas}" aria-label="Cerrar y volver">×</a></div>
+  <p class="notice">Un sobreturno es un paciente extra en un horario que <b>ya está ocupado</b> (urgencias, casos especiales). Queda confirmado y el doctor lo atiende en su mismo consultorio. Máximo <b th:text="${max}">2</b> por doctor y día.</p>
+  <div class="alert" role="alert" th:if="${error}" th:text="${error}">Error</div>
+  <label>Paciente
+    <select name="paciente" required>
+      <option value="">Elige un paciente</option>
+      <option th:each="p : ${pacientes}" th:value="${p.id}" th:text="|${p.name} · DNI ${p.dni}|">Paciente</option>
+    </select>
+  </label>
+  <label>Doctor
+    <select name="doctor" required>
+      <option value="">Elige un doctor</option>
+      <option th:each="d : ${doctores}" th:value="${d.nombre}" th:text="|${d.nombre} · ${d.especialidad}|">Dr. Ramírez</option>
+    </select>
+  </label>
+  <div class="two">
+    <label>Fecha<input type="date" name="fecha" required th:min="${minFecha}" th:max="${maxFecha}"></label>
+    <label>Hora (la de la cita ya ocupada)<input type="time" name="hora" required step="900"></label>
+  </div>
+  <div class="actions"><a class="secondary" th:href="@{/admin/citas}">Cancelar</a><button class="primary">Agregar sobreturno</button></div>
+</form>
+</div>
+<footer class="bottom">© 2026 MedCare · Sistema de gestión de pacientes <span>Maqueta académica · Datos ficticios</span></footer>
+</main>
+<div th:replace="~{fragments :: avisos}"></div>
+<script th:src="@{/script.js}"></script>
+</body>
+</html>

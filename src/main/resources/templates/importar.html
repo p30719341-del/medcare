@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MedCare | Importar pacientes</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232864e8'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E"><link rel="stylesheet" th:href="@{/styles.css}"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2864e8"><link rel="apple-touch-icon" href="/img/icon-192.png"><script>(function(){var R=document.documentElement;try{var t=localStorage.getItem('medcare-tema');if(t)R.setAttribute('data-theme',t)}catch(e){}function sync(){var d=R.getAttribute('data-theme')==='dark';var b=document.querySelectorAll('[data-theme-toggle]');for(var i=0;i<b.length;i++){b[i].setAttribute('aria-pressed',String(d));var s=b[i].querySelector('span');if(s)s.textContent=d?'Modo claro':'Modo oscuro'}}document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('medcare-tema',n)}catch(x){}sync()});document.addEventListener('DOMContentLoaded',sync)})()</script></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<aside th:replace="~{fragments :: sidebarAdmin('importar')}"></aside>
+<main id="contenido">
+<header>
+  <div class="crumb"><button th:replace="~{fragments :: menuBtn}"></button><span>Pacientes　/　<strong>Importar</strong></span></div>
+  <span id="today"></span>
+</header>
+
+<section class="heading">
+  <div><small class="kicker">PACIENTES</small><h1>Importar pacientes</h1><p>Sube un Excel (.xlsx) o un CSV con tus pacientes. A cada uno se le crea su acceso: usuario = DNI y clave inicial = DNI (deberá cambiarla al ingresar).</p></div>
+  <div class="head-acts"><a class="secondary" th:href="@{/admin/importar/plantilla.csv}">Descargar plantilla</a></div>
+</section>
+<p class="notice error" role="alert" th:if="${error != null}" th:text="${error}">Error</p>
+<article class="panel" th:if="${creados == null}">
+  <form class="importform" th:action="@{/admin/importar}" method="post" enctype="multipart/form-data">
+    <label>Archivo (.xlsx o .csv, máximo 2 MB)
+      <input type="file" name="archivo" accept=".xlsx,.csv,.txt" required>
+    </label>
+    <p class="exvacio">Columnas: <b>Nombre</b>, <b>DNI</b> (8 dígitos), <b>Teléfono</b> y <b>Correo</b> (opcional). La primera fila puede ser el encabezado. Máximo <span th:text="${maxFilas}">500</span> filas. Los DNI que ya existen se omiten. Usa solo datos ficticios.</p>
+    <button class="primary">Importar</button>
+  </form>
+</article>
+<article class="panel" th:if="${creados != null}">
+  <div class="panelhead"><div><h2>Resultado de la importación</h2><p th:text="|${total} filas leídas|">10 filas leídas</p></div></div>
+  <div class="importres">
+    <div><b th:text="${creados}">0</b><span>pacientes creados</span></div>
+    <div><b th:text="${repetidos}">0</b><span>ya existían (omitidos)</span></div>
+    <div><b th:text="${#lists.size(problemas)}">0</b><span>filas con error</span></div>
+  </div>
+  <div class="scroll" th:unless="${#lists.isEmpty(problemas)}"><table>
+    <caption class="sr-only">Filas con error</caption>
+    <thead><tr><th scope="col">FILA</th><th scope="col">NOMBRE</th><th scope="col">DNI</th><th scope="col">PROBLEMA</th></tr></thead>
+    <tbody><tr th:each="f : ${problemas}"><td data-label="Fila" th:text="${f.numero}">2</td><td data-label="Nombre" th:text="${f.nombre}">Nombre</td><td data-label="DNI" th:text="${f.dni}">DNI</td><td data-label="Problema" th:text="${f.error}">Error</td></tr></tbody>
+  </table></div>
+  <div class="actions"><a class="secondary" th:href="@{/admin/importar}">Importar otro archivo</a><a class="primary" th:href="@{/admin/index}">Ver pacientes</a></div>
+</article>
+
+<footer class="bottom">© 2026 MedCare · Sistema de gestión de pacientes <span>Maqueta académica · Datos ficticios</span></footer>
+</main>
+<div th:replace="~{fragments :: avisos}"></div>
+<script th:src="@{/script.js}"></script>
+</body>
+</html>

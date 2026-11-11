@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MedCare | Gestión de pacientes</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232864e8'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E"><link rel="stylesheet" th:href="@{/styles.css}"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2864e8"><link rel="apple-touch-icon" href="/img/icon-192.png"><script>(function(){var R=document.documentElement;try{var t=localStorage.getItem('medcare-tema');if(t)R.setAttribute('data-theme',t)}catch(e){}function sync(){var d=R.getAttribute('data-theme')==='dark';var b=document.querySelectorAll('[data-theme-toggle]');for(var i=0;i<b.length;i++){b[i].setAttribute('aria-pressed',String(d));var s=b[i].querySelector('span');if(s)s.textContent=d?'Modo claro':'Modo oscuro'}}document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('medcare-tema',n)}catch(x){}sync()});document.addEventListener('DOMContentLoaded',sync)})()</script></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<aside th:replace="~{fragments :: sidebarAdmin('inicio')}"></aside>
+<main id="contenido">
+<header>
+  <div class="crumb"><button th:replace="~{fragments :: menuBtn}"></button><span>Inicio　/　<strong>Panel principal</strong></span></div>
+  <span id="today"></span>
+</header>
+
+<section class="heading">
+  <div><small class="kicker">RESUMEN GENERAL</small><h1>Panel principal</h1><p>Bienvenido. Aquí tienes el resumen de la actividad de la clínica.</p></div>
+  <a class="primary" th:href="@{/admin/new}">＋ Registrar paciente</a>
+</section>
+
+<section class="stats" aria-label="Resumen del día">
+  <article>
+    <label>Total de pacientes</label>
+    <span class="chip" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.4c2 .7 3.5 2.6 3.5 5.6"/></svg></span>
+    <div class="number" th:text="${totalPacientes}">0</div>
+    <small>Registrados en el sistema</small>
+  </article>
+  <article>
+    <label>Citas para hoy</label>
+    <span class="chip" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg></span>
+    <div class="number" th:text="${#lists.size(citasHoy)}">0</div>
+    <small th:text="|${confirmadas} confirmadas · ${pendientes} pendientes|"></small>
+    <div class="meter" role="img" th:attr="aria-label=|${confirmadas} de ${#lists.size(citasHoy)} citas confirmadas|"><i th:style="|width:${#lists.size(citasHoy) > 0 ? confirmadas * 100 / #lists.size(citasHoy) : 0}%|"></i></div>
+  </article>
+  <article>
+    <label>Confirmadas</label>
+    <span class="chip green" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16.3 9.5"/></svg></span>
+    <div class="number" th:text="${confirmadas}">0</div>
+    <small>Citas de hoy</small>
+  </article>
+  <article>
+    <label>Por confirmar</label>
+    <span class="chip amber" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5.5l3.5 2"/></svg></span>
+    <div class="number" th:text="${pendientes}">0</div>
+    <small>Requieren seguimiento</small>
+  </article>
+</section>
+
+<section class="layout">
+  <article class="panel" id="citas">
+    <div class="panelhead"><div><h2>Próximas citas</h2><p>Agenda del día y de los próximos días</p></div><a class="secondary" th:href="@{/admin/citas}">Ver todas →</a></div>
+    <div class="appt" th:each="c : ${citasHoy}" th:data-time="${#temporals.format(c.hora,'HH:mm')}">
+      <time th:text="${#temporals.format(c.hora,'HH:mm')}"></time>
+      <div><strong th:text="${c.paciente.name}"></strong><small th:text="|${c.especialidad} · ${c.doctor}|"></small></div>
+      <div class="st">
+        <span th:class="${c.claseEstado}" th:text="${c.estado}"></span>
+        <form th:if="${c.estado == 'Pendiente'}" th:action="@{/admin/citas/{id}/confirmar(id=${c.id})}" method="post"><input type="hidden" name="volver" th:value="${volver}"><button class="btn-ok" th:attr="aria-label=|Confirmar cita de ${c.paciente.name}|">Confirmar</button></form>
+        <a class="btn-wa" th:if="${c.activa}" th:href="${@wa.recordatorio(c)}" target="_blank" rel="noopener" th:attr="aria-label=|Recordar por WhatsApp a ${c.paciente.name}|">WhatsApp</a>
+      </div>
+    </div>
+    <p class="empty" th:if="${#lists.isEmpty(citasHoy)}">No hay citas programadas para hoy.</p>
+
+    <h3 class="sub" th:if="${!#lists.isEmpty(proximas)}">Próximos días</h3>
+    <div class="appt" th:each="c : ${proximas}">
+      <time><b th:text="${#temporals.format(c.hora,'HH:mm')}"></b><small th:text="${#temporals.format(c.fecha,'dd MMM')}"></small></time>
+      <div><strong th:text="${c.paciente.name}"></strong><small th:text="|${c.especialidad} · ${c.doctor}|"></small></div>
+      <div class="st">
+        <span th:class="${c.claseEstado}" th:text="${c.estado}"></span>
+        <form th:if="${c.estado == 'Pendiente'}" th:action="@{/admin/citas/{id}/confirmar(id=${c.id})}" method="post"><input type="hidden" name="volver" th:value="${volver}"><button class="btn-ok" th:attr="aria-label=|Confirmar cita de ${c.paciente.name}|">Confirmar</button></form>
+        <a class="btn-wa" th:if="${c.activa}" th:href="${@wa.recordatorio(c)}" target="_blank" rel="noopener" th:attr="aria-label=|Recordar por WhatsApp a ${c.paciente.name}|">WhatsApp</a>
+      </div>
+    </div>
+  </article>
+
+  <article class="panel" id="pacientes">
+    <div class="panelhead"><div><h2>Pacientes recientes</h2><p>Administra la información de tus pacientes.</p></div><a class="secondary" th:href="@{/admin/index}">Ver todos →</a></div>
+    <form class="tools" method="get" th:action="@{/admin/index}" role="search">
+      <input id="q" name="q" type="search" th:value="${q}" placeholder="Buscar por nombre, DNI o teléfono..." aria-label="Buscar paciente" autocomplete="off">
+      <select name="estado" aria-label="Filtrar por estado" onchange="this.form.submit()">
+        <option value="Todos" th:selected="${estado == 'Todos'}">Todos los estados</option>
+        <option value="Activo" th:selected="${estado == 'Activo'}">Activo</option>
+        <option value="Pendiente" th:selected="${estado == 'Pendiente'}">Pendiente</option>
+      </select>
+      <button class="secondary">Buscar</button>
+    </form>
+    <div class="scroll"><table id="tabla">
+      <caption class="sr-only">Lista de pacientes</caption>
+      <thead><tr>
+        <th scope="col" data-sort="text">PACIENTE</th>
+        <th scope="col" data-sort="text">DNI</th>
+        <th scope="col">TELÉFONO</th>
+        <th scope="col" data-sort="date">ÚLTIMA VISITA</th>
+        <th scope="col" data-sort="text">ESTADO</th>
+        <th scope="col">ACCIONES</th>
+      </tr></thead>
+      <tbody>
+        <tr th:each="p : ${pacientes}" th:data-name="${p.name}">
+          <td data-label="Paciente"><div class="who"><span class="av" aria-hidden="true"></span><span th:text="${p.name}"></span></div></td>
+          <td data-label="DNI" th:text="${p.dni}"></td>
+          <td data-label="Teléfono" th:text="${p.phone}"></td>
+          <td data-label="Última visita" th:data-v="${p.visit}"><div><span th:text="${#temporals.format(p.visit,'dd MMM yyyy')}"></span><small class="rel" th:data-date="${p.visit}"></small></div></td>
+          <td data-label="Estado"><span class="pill" th:classappend="${p.status == 'Activo'} ? 'active' : 'pending'" th:text="${p.status}"></span></td>
+          <td data-label="Acciones"><div class="acts">
+            <a class="btn-edit" th:href="@{/admin/edit/{id}(id=${p.id})}" th:attr="aria-label=|Editar a ${p.name}|">Editar</a>
+            <form class="del-form" th:action="@{/admin/delete/{id}(id=${p.id})}" method="post" th:data-name="${p.name}"><button class="btn-del" th:attr="aria-label=|Eliminar a ${p.name}|">Eliminar</button></form>
+          </div></td>
+        </tr>
+        <tr class="empty-row" th:if="${#lists.isEmpty(pacientes)}"><td colspan="6">No se encontraron pacientes.</td></tr>
+      </tbody>
+    </table></div>
+    <footer id="count" th:data-total="${totalPacientes}" th:text="|Mostrando ${#lists.size(pacientes)} de ${totalPacientes} pacientes · Datos de demostración|"></footer>
+  </article>
+</section>
+
+<footer class="bottom">© 2026 MedCare · Sistema de gestión de pacientes <span>Maqueta académica · Datos ficticios</span></footer>
+</main>
+
+<dialog class="dialog" id="confirmDialog" aria-labelledby="confirmTitle">
+  <h2 id="confirmTitle">¿Eliminar paciente?</h2>
+  <p>Se eliminará a <strong id="confirmName"></strong> y su acceso al portal. Esta acción no se puede deshacer.</p>
+  <div class="actions"><button type="button" class="secondary" id="confirmNo">Cancelar</button><button type="button" class="danger" id="confirmYes">Sí, eliminar</button></div>
+</dialog>
+
+<div th:replace="~{fragments :: avisos}"></div>
+<script th:src="@{/script.js}"></script>
+</body>
+</html>

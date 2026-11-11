@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!-- Menú del ADMIN -->
+<aside class="sidebar" id="sidebar" aria-label="Menú principal" th:fragment="sidebarAdmin(active)">
+  <div class="brand"><b>✚</b><span><strong>MedCare</strong><small>Gestión clínica</small></span></div>
+  <p class="navlabel">MENÚ PRINCIPAL</p>
+  <a th:classappend="${active == 'inicio'} ? 'active'" th:href="@{/admin/index}">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Panel principal</a>
+  <a th:href="@{/admin/index} + '#pacientes'">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18 14.4c2 .7 3.5 2.6 3.5 5.6"/></svg>Pacientes</a>
+  <a th:classappend="${active == 'citas'} ? 'active'" th:href="@{/admin/citas}">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Citas médicas<span class="nbadge" th:if="${pendientesCount != null and pendientesCount > 0}" th:text="${pendientesCount}" title="Citas pendientes de confirmar">3</span></a>
+  <a th:classappend="${active == 'calendario'} ? 'active'" th:href="@{/admin/calendario}">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4M8 14h2M14 14h2M8 17h2"/></svg>Calendario</a>
+  <a th:classappend="${active == 'doctores'} ? 'active'" th:href="@{/admin/doctores}">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.8"/><path d="M4.5 20.5c0-4 3.4-6.5 7.5-6.5s7.5 2.5 7.5 6.5"/><path d="M12 15.5v4M10 17.5h4"/></svg>Doctores</a>
+  <a th:classappend="${active == 'sobreturno'} ? 'active'" th:href="@{/admin/sobreturno}">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M18 8v6M15 11h6"/></svg>Sobreturno</a>
+  <a th:classappend="${active == 'espera'} ? 'active'" th:href="@{/admin/espera}">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Lista de espera</a>
+  <a th:classappend="${active == 'actividad'} ? 'active'" th:href="@{/admin/actividad}">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5zM9 9h6M9 13h6M9 17h3"/></svg>Actividad</a>
+  <a th:classappend="${active == 'personal'} ? 'active'" th:href="@{/admin/personal}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6M17 11l2 2 3.5-4"/></svg>Personal y accesos</a>
+  <a th:classappend="${active == 'importar'} ? 'active'" th:href="@{/admin/importar}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg>Importar pacientes</a>
+  <a th:classappend="${active == 'sistema'} ? 'active'" th:href="@{/admin/sistema}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Estado del sistema</a>
+  <a th:classappend="${active == 'respaldos'} ? 'active'" th:href="@{/admin/respaldos}">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="6" rx="7.5" ry="3"/><path d="M4.5 6v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3V6M4.5 12v6c0 1.7 3.4 3 7.5 3s7.5-1.3 7.5-3v-6"/></svg>Copias de seguridad</a>
+  <a th:classappend="${active == 'reportes'} ? 'active'" th:href="@{/admin/reportes}">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>Reportes</a>
+  <a th:classappend="${active == 'nuevo'} ? 'active'" th:href="@{/admin/new}">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Nuevo paciente</a>
+  <a th:classappend="${active == 'seguridad'} ? 'active'" th:href="@{/cuenta/2fa}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7.5 3v5.5c0 4.4-3.1 8-7.5 9.5-4.4-1.5-7.5-5.1-7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg>Verificación en 2 pasos</a>
+  <a th:href="@{/cuenta/clave}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 8l3 3"/></svg>Cambiar contraseña</a>
+  <a th:href="@{/}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>Sitio web</a>
+  <button type="button" class="theme-btn" data-theme-toggle aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"/></svg><span>Modo oscuro</span></button>
+  <div class="profile"><div class="avatar" aria-hidden="true">AD</div><span><strong sec:authentication="name">admin</strong><small>Administrador</small></span></div>
+  <form th:action="@{/logout}" method="post"><button class="logout">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></svg>Cerrar sesión</button></form>
+</aside>
+
+<!-- Menú del PACIENTE -->
+<aside class="sidebar" id="sidebar" aria-label="Menú principal" th:fragment="sidebarPaciente(active)">
+  <div class="brand"><b>✚</b><span><strong>MedCare</strong><small>Gestión clínica</small></span></div>
+  <p class="navlabel">MI ESPACIO</p>
+  <a th:classappend="${active == 'citas'} ? 'active'" th:href="@{/paciente/mi-cita}">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Mis citas</a>
+  <a th:href="@{/} + '#reservar'"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Reservar otra cita</a>
+  <a th:href="@{/cuenta/clave}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 8l3 3"/></svg>Cambiar contraseña</a>
+  <a th:href="@{/}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>Sitio web</a>
+  <button type="button" class="theme-btn" data-theme-toggle aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"/></svg><span>Modo oscuro</span></button>
+  <div class="profile"><div class="avatar" aria-hidden="true">PA</div><span><strong sec:authentication="name">paciente</strong><small>Paciente</small></span></div>
+  <form th:action="@{/logout}" method="post"><button class="logout">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></svg>Cerrar sesión</button></form>
+</aside>
+
+
+<!-- Menú de RECEPCIÓN -->
+<aside class="sidebar" id="sidebar" aria-label="Menú principal" th:fragment="sidebarRecepcion(active)">
+  <div class="brand"><b>✚</b><span><strong>MedCare</strong><small>Gestión clínica</small></span></div>
+  <p class="navlabel">RECEPCIÓN</p>
+  <a th:classappend="${active == 'citas'} ? 'active'" th:href="@{/recepcion/citas}">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Citas</a>
+  <a th:href="@{/} + '#reservar'"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>Agendar una cita</a>
+  <a th:href="@{/cuenta/2fa}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7.5 3v5.5c0 4.4-3.1 8-7.5 9.5-4.4-1.5-7.5-5.1-7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg>Verificación en 2 pasos</a>
+  <a th:href="@{/cuenta/clave}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 8l3 3"/></svg>Cambiar contraseña</a>
+  <a th:href="@{/}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>Sitio web</a>
+  <button type="button" class="theme-btn" data-theme-toggle aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"/></svg><span>Modo oscuro</span></button>
+  <div class="profile"><div class="avatar" aria-hidden="true">RC</div><span><strong sec:authentication="name">recepcion</strong><small>Recepción</small></span></div>
+  <form th:action="@{/logout}" method="post"><button class="logout">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></svg>Cerrar sesión</button></form>
+</aside>
+
+
+<!-- Menú del DOCTOR -->
+<aside class="sidebar" id="sidebar" aria-label="Menú principal" th:fragment="sidebarDoctor(active)">
+  <div class="brand"><b>✚</b><span><strong>MedCare</strong><small>Gestión clínica</small></span></div>
+  <p class="navlabel">MI CONSULTORIO</p>
+  <a th:classappend="${active == 'agenda'} ? 'active'" th:href="@{/doctor/agenda}">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Mi agenda</a>
+  <a th:classappend="${active == 'plantillas'} ? 'active'" th:href="@{/doctor/plantillas}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/></svg>Plantillas de receta</a>
+  <a th:classappend="${active == 'bloqueos'} ? 'active'" th:href="@{/doctor/bloqueos}">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>Días bloqueados</a>
+  <a th:classappend="${active == 'seguridad'} ? 'active'" th:href="@{/cuenta/2fa}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7.5 3v5.5c0 4.4-3.1 8-7.5 9.5-4.4-1.5-7.5-5.1-7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg>Verificación en 2 pasos</a>
+  <a th:href="@{/cuenta/clave}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15" r="4"/><path d="m11 12 9-9M16 8l3 3"/></svg>Cambiar contraseña</a>
+  <a th:href="@{/}"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18"/></svg>Sitio web</a>
+  <button type="button" class="theme-btn" data-theme-toggle aria-pressed="false"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"/></svg><span>Modo oscuro</span></button>
+  <div class="profile"><div class="avatar" aria-hidden="true">DR</div><span><strong sec:authentication="name">doctor</strong><small>Doctor</small></span></div>
+  <form th:action="@{/logout}" method="post"><button class="logout">
+    <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 16l-4-4 4-4M6 12h10"/></svg>Cerrar sesión</button></form>
+</aside>
+
+
+<!-- Exámenes y archivos adjuntos de una cita -->
+<div class="examenes" th:fragment="examenes(lista, verUrl, subirUrl, borrarUrl, propio, maxMb)">
+  <ul class="exlist" th:unless="${#lists.isEmpty(lista)}">
+    <li th:each="e : ${lista}">
+      <span class="exico" th:text="${e.imagen} ? 'IMG' : 'PDF'">PDF</span>
+      <span class="exinfo"><a th:href="@{${verUrl + e.id}}" target="_blank" rel="noopener" th:text="${e.titulo}">Hemograma</a>
+        <small th:text="|${e.tamanoTexto} · ${e.subidoPor} · ${#temporals.format(e.fecha,'dd MMM yyyy')}|">12 KB</small></span>
+      <span class="exsim" th:if="${e.simulado}" title="Archivo de demostración, no es un paciente real">Simulado</span>
+      <form th:if="${borrarUrl != null and e.subidoPor == propio}" th:action="@{${borrarUrl + e.id + '/borrar'}}" method="post" data-confirm="¿Quitar este archivo?"><button class="btn-del">Quitar</button></form>
+    </li>
+  </ul>
+  <p class="exvacio" th:if="${#lists.isEmpty(lista)}">Aún no hay archivos adjuntos.</p>
+  <form th:if="${subirUrl != null}" class="exup" th:action="@{${subirUrl}(_csrf=${_csrf.token})}" method="post" enctype="multipart/form-data">
+    <input type="text" name="descripcion" maxlength="100" placeholder="Descripción (ej. Radiografía de tórax)" aria-label="Descripción del archivo">
+    <input type="file" name="archivo" accept="application/pdf,image/png,image/jpeg" required aria-label="Archivo PDF, PNG o JPG">
+    <button class="primary">Subir archivo</button>
+    <small th:text="|PDF, PNG o JPG · máximo ${maxMb} MB · en la demostración usa solo archivos ficticios|">PDF, PNG o JPG</small>
+  </form>
+</div>
+
+<!-- Botón de menú (solo se ve en pantallas pequeñas) -->
+<button class="menu-btn" id="menuBtn" type="button" aria-label="Abrir menú" aria-controls="sidebar" aria-expanded="false" th:fragment="menuBtn">
+  <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+</button>
+
+<!-- Avisos (mensaje correcto o error enviados por el servidor) -->
+<div th:fragment="avisos">
+  <div class="toast show" id="toast" role="status" th:if="${msg}"><span th:text="${msg}"></span><button type="button" aria-label="Cerrar aviso" id="toastClose">×</button></div>
+  <div class="toast show bad" id="toast" role="alert" th:if="${error != null and msg == null}"><span th:text="${error}"></span><button type="button" aria-label="Cerrar aviso" id="toastClose">×</button></div>
+</div>
+
+</body>
+</html>

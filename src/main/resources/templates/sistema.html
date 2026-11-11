@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MedCare | Estado del sistema</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232864e8'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E"><link rel="stylesheet" th:href="@{/styles.css}"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2864e8"><link rel="apple-touch-icon" href="/img/icon-192.png"><script>(function(){var R=document.documentElement;try{var t=localStorage.getItem('medcare-tema');if(t)R.setAttribute('data-theme',t)}catch(e){}function sync(){var d=R.getAttribute('data-theme')==='dark';var b=document.querySelectorAll('[data-theme-toggle]');for(var i=0;i<b.length;i++){b[i].setAttribute('aria-pressed',String(d));var s=b[i].querySelector('span');if(s)s.textContent=d?'Modo claro':'Modo oscuro'}}document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('medcare-tema',n)}catch(x){}sync()});document.addEventListener('DOMContentLoaded',sync)})()</script></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<aside th:replace="~{fragments :: sidebarAdmin('sistema')}"></aside>
+<main id="contenido">
+<header>
+  <div class="crumb"><button th:replace="~{fragments :: menuBtn}"></button><span>Sistema　/　<strong>Estado</strong></span></div>
+  <span id="today"></span>
+</header>
+
+<section class="heading">
+  <div><small class="kicker">SISTEMA</small><h1>Estado del sistema</h1><p>Qué está encendido, qué sigue simulado y qué falta configurar para que MedCare funcione “de verdad”.</p></div>
+  <div class="head-acts">
+    <form th:action="@{/admin/sistema/prueba-correo}" method="post"><button class="primary">Enviar correo de prueba</button></form>
+  </div>
+</section>
+<article class="panel">
+  <div class="panelhead"><div><h2>Servicios</h2><p>Verde = listo · Ámbar = simulado o por configurar</p></div></div>
+  <ul class="syslist">
+    <li th:each="s : ${servicios}"><span class="dot" th:classappend="${s.ok} ? 'good' : 'warn'" aria-hidden="true"></span>
+      <div><strong th:text="${s.nombre}">Correo</strong><small th:text="${s.detalle}">Detalle</small></div>
+      <span th:class="${s.ok} ? 'ok' : 'wait'" th:text="${s.estado}">Simulado</span></li>
+  </ul>
+</article>
+<article class="panel">
+  <div class="panelhead"><div><h2>Datos</h2><p>Lo que hay guardado ahora</p></div></div>
+  <div class="datos">
+    <div th:each="d : ${datos}"><span th:text="${d.nombre}">Pacientes</span><strong th:text="${d.detalle}">5</strong></div>
+  </div>
+</article>
+<article class="panel">
+  <div class="panelhead"><div><h2>Servidor</h2><p>Información técnica</p></div></div>
+  <div class="datos">
+    <div th:each="d : ${servidor}"><span th:text="${d.nombre}">Java</span><strong th:text="${d.detalle}">17</strong></div>
+  </div>
+</article>
+<p class="notice">Cómo activar cada servicio real está en <b>README.txt</b> y <b>DESPLIEGUE.txt</b>. Los secretos (contraseñas, tokens) nunca se muestran aquí.</p>
+
+<footer class="bottom">© 2026 MedCare · Sistema de gestión de pacientes <span>Maqueta académica · Datos ficticios</span></footer>
+</main>
+<div th:replace="~{fragments :: avisos}"></div>
+<script th:src="@{/script.js}"></script>
+</body>
+</html>

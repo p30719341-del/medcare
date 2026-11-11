@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MedCare | Mis citas</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232864e8'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E"><link rel="stylesheet" th:href="@{/styles.css}"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2864e8"><link rel="apple-touch-icon" href="/img/icon-192.png"><script>(function(){var R=document.documentElement;try{var t=localStorage.getItem('medcare-tema');if(t)R.setAttribute('data-theme',t)}catch(e){}function sync(){var d=R.getAttribute('data-theme')==='dark';var b=document.querySelectorAll('[data-theme-toggle]');for(var i=0;i<b.length;i++){b[i].setAttribute('aria-pressed',String(d));var s=b[i].querySelector('span');if(s)s.textContent=d?'Modo claro':'Modo oscuro'}}document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('medcare-tema',n)}catch(x){}sync()});document.addEventListener('DOMContentLoaded',sync)})()</script></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<aside th:replace="~{fragments :: sidebarPaciente('citas')}"></aside>
+<main id="contenido">
+<header>
+  <div class="crumb"><button th:replace="~{fragments :: menuBtn}"></button><span>Inicio　/　<strong>Mis citas</strong></span></div>
+  <span id="today"></span>
+</header>
+
+<section class="heading"><div><small class="kicker">PORTAL DEL PACIENTE</small><h1 th:text="|Hola, ${paciente.name}|">Hola</h1><p>Consulta, cambia o cancela tus citas, y revisa tu historial y tus recetas.</p></div>
+  <a class="primary" th:href="@{/} + '#reservar'">＋ Reservar otra cita</a></section>
+
+<section class="next" th:if="${proxima != null}" aria-label="Próxima cita">
+  <div>
+    <span class="k">TU PRÓXIMA CITA</span>
+    <span class="when" th:text="${#temporals.format(proxima.fecha,'EEEE dd MMM yyyy')}">Fecha</span>
+    <span class="hour" th:text="${#temporals.format(proxima.hora,'HH:mm')} + ' h'">09:00 h</span>
+    <div class="who2">
+      <span th:text="${proxima.especialidad}">Especialidad</span>
+      <span th:text="${proxima.doctor}">Doctor</span>
+      <span th:if="${proxima.virtual}">Videollamada</span>
+      <span th:if="${!proxima.virtual and proxima.consultorio != null}" th:text="${proxima.consultorio}">C-101</span>
+    </div>
+    <div class="next-actions" th:if="${proxima.virtual and proxima.enlaceVirtual != null}">
+      <a class="nbtn join" th:href="${proxima.enlaceVirtual}" target="_blank" rel="noopener">Unirse a la videollamada</a>
+    </div>
+    <div class="next-actions">
+      <a class="nbtn" th:href="@{/paciente/citas/{id}/calendario.ics(id=${proxima.id})}">Agregar al calendario</a>
+    </div>
+    <div class="next-actions" th:if="${proxima.cambiable}">
+      <a class="nbtn" th:href="@{/paciente/citas/{id}/reprogramar(id=${proxima.id})}">Reprogramar</a>
+      <form th:action="@{/paciente/citas/{id}/cancelar(id=${proxima.id})}" method="post" data-confirm="¿Cancelar tu cita? Podrás reservar otra cuando quieras."><button class="nbtn">Cancelar cita</button></form>
+      <a class="nbtn" th:href="${@wa.compartir(proxima)}" target="_blank" rel="noopener">Enviar por WhatsApp</a>
+    </div>
+    <p class="next-note" th:unless="${proxima.cambiable}" th:text="|Solo puedes cambiar o cancelar con al menos ${horasCambio} horas de anticipación. Si lo necesitas, llámanos.|">Nota</p>
+  </div>
+  <div class="side">
+    <span class="count" id="countdown" th:data-date="${proxima.fecha}" th:data-time="${#temporals.format(proxima.hora,'HH:mm')}"></span>
+    <span th:class="${proxima.claseEstado}" th:text="${proxima.estado}">Estado</span>
+  </div>
+</section>
+<section class="next-empty" th:unless="${proxima != null}">
+  <strong>No tienes citas próximas</strong>
+  <p>Cuando reserves una cita, aparecerá aquí.</p>
+</section>
+
+<section class="layout">
+  <article class="panel">
+    <div class="panelhead"><div><h2>Mis citas</h2><p>Solo se muestran tus propias citas</p></div><span class="badge" th:text="|${#lists.size(citas)} registradas|"></span></div>
+    <div class="appt mine" th:each="c : ${citas}">
+      <div class="cita-date" aria-hidden="true"><div><b th:text="${#temporals.format(c.fecha,'dd')}">15</b><span th:text="${#temporals.format(c.fecha,'MMM')}">oct</span></div></div>
+      <div><strong th:text="${#temporals.format(c.fecha,'EEEE dd MMM yyyy')}"></strong><small th:text="|${#temporals.format(c.hora,'HH:mm')} h · ${c.especialidad} · ${c.doctor}|"></small><small th:if="${c.familiar != null}" th:text="|Para: ${c.familiar}|">Para</small><small th:if="${c.virtual}">Videollamada</small><small th:if="${!c.virtual and c.consultorio != null}" th:text="|Consultorio ${c.consultorio}|">Consultorio</small></div>
+      <span th:class="${c.claseEstado}" th:text="${c.estado}"></span>
+      <div class="row-acts" th:if="${c.cambiable}">
+        <a class="btn-edit" th:href="@{/paciente/citas/{id}/reprogramar(id=${c.id})}">Reprogramar</a>
+        <form th:action="@{/paciente/citas/{id}/cancelar(id=${c.id})}" method="post" data-confirm="¿Cancelar esta cita?"><button class="btn-del">Cancelar</button></form>
+        <a class="btn-wa" th:href="${@wa.compartir(c)}" target="_blank" rel="noopener">WhatsApp</a>
+      </div>
+      <div class="row-acts" th:if="${(c.virtual and c.activa and c.enlaceVirtual != null) or c.pagado}">
+        <a class="btn-edit" th:if="${c.virtual and c.activa and c.enlaceVirtual != null}" th:href="${c.enlaceVirtual}" target="_blank" rel="noopener">Unirse a la videollamada</a>
+        <a class="btn-edit" th:if="${c.pagado}" th:href="@{/paciente/citas/{id}/boleta.pdf(id=${c.id})}" target="_blank" rel="noopener">Boleta PDF</a>
+      </div>
+      <p class="paynote" th:if="${@pagos.yape and c.activa and !c.pagado and c.precio gt 0}" th:text="${@pagos.instruccion(c)}">Paga por Yape.</p>
+      <div class="row-acts" th:if="${c.activa}">
+        <a class="btn-edit" th:href="@{/paciente/citas/{id}/calendario.ics(id=${c.id})}">Agregar al calendario</a>
+      </div>
+      <details class="exdet" th:if="${c.activa and !c.fecha.isBefore(T(java.time.LocalDate).now())}">
+        <summary th:text="${c.triaje != null} ? 'Mis síntomas (enviados)' : 'Contar mis síntomas antes de la cita'">Síntomas</summary>
+        <form class="triajeform" th:action="@{/paciente/citas/{id}/triaje(id=${c.id})}" method="post">
+          <textarea name="sintomas" rows="3" maxlength="800" required placeholder="Ej. Dolor de garganta hace 3 días, fiebre leve." aria-label="Síntomas" th:text="${c.triaje}"></textarea>
+          <button class="primary">Guardar síntomas</button>
+        </form>
+      </details>
+      <details class="exdet" th:if="${chats.containsKey(c.id)}">
+        <summary th:text="|Mensajes con el doctor (${#lists.size(chats.get(c.id))})|">Mensajes</summary>
+        <ul class="chatlist" th:unless="${#lists.isEmpty(chats.get(c.id))}">
+          <li th:each="m : ${chats.get(c.id)}" th:classappend="${m.delPaciente} ? 'pac' : 'doc'">
+            <p th:text="${m.texto}">Mensaje</p>
+            <small th:text="|${m.autor} · ${#temporals.format(m.fecha,'dd MMM HH:mm')}|">Paciente · 10:00</small>
+          </li>
+        </ul>
+        <form class="chatform" th:action="@{/paciente/citas/{id}/mensaje(id=${c.id})}" method="post">
+          <input name="texto" maxlength="500" required placeholder="Escribe tu duda (máx. 500 caracteres)" aria-label="Mensaje para el doctor" autocomplete="off">
+          <button class="primary">Enviar</button>
+        </form>
+      </details>
+      <details class="exdet" th:if="${examenes.containsKey(c.id)}">
+        <summary th:text="|Exámenes y archivos (${#lists.size(examenes.get(c.id))})|">Exámenes y archivos</summary>
+        <div th:replace="~{fragments :: examenes(${examenes.get(c.id)}, '/paciente/examenes/', '/paciente/citas/' + ${c.id} + '/examenes', '/paciente/examenes/', 'Paciente', ${maxMb})}"></div>
+      </details>
+    </div>
+    <p class="empty" th:if="${#lists.isEmpty(citas)}">Aún no tienes citas registradas.</p>
+  </article>
+
+  <article class="panel" id="historial">
+    <div class="panelhead"><div><h2>Historial y recetas</h2><p>Diagnóstico e indicaciones de tus citas atendidas</p></div><span class="badge" th:text="|${#lists.size(historial)} atendidas|"></span></div>
+    <div class="hist" th:each="c : ${historial}">
+      <div class="hist-head">
+        <div><strong th:text="|${c.especialidad} · ${c.doctor}|">Especialidad</strong><small th:text="|${#temporals.format(c.fecha,'dd MMM yyyy')} · ${#temporals.format(c.hora,'HH:mm')} h|">fecha</small></div>
+        <a class="btn-edit" th:href="@{/paciente/citas/{id}/receta.pdf(id=${c.id})}" target="_blank" rel="noopener">Receta PDF con QR</a>
+      </div>
+      <dl>
+        <dt>Diagnóstico</dt><dd th:text="${c.diagnostico != null} ? ${c.diagnostico} : 'Sin diagnóstico registrado.'">Diagnóstico</dd>
+        <dt th:if="${c.cie10 != null}">Código CIE-10</dt><dd th:if="${c.cie10 != null}" th:text="|${c.cie10} · ${T(com.medcare.service.Cie10).nombre(c.cie10)}|">J02.9</dd>
+        <dt th:if="${c.controlDias != null}">Control sugerido</dt><dd th:if="${c.controlDias != null}" th:text="|En ${c.controlDias} días (${#temporals.format(c.controlFecha,'dd MMM yyyy')})|">En 15 días</dd>
+        <dt>Receta e indicaciones</dt><dd class="pre" th:text="${c.receta != null} ? ${c.receta} : 'Sin receta registrada.'">Receta</dd>
+      </dl>
+      <form class="resena" th:unless="${resenadas.contains(c.id)}" th:action="@{/paciente/citas/{id}/resena(id=${c.id})}" method="post">
+        <fieldset class="stars-in"><legend th:text="|¿Cómo fue tu atención con ${c.doctor}?|">¿Cómo fue tu atención?</legend><div class="starbox"><input type="radio" name="estrellas" value="5" th:id="'e5-' + ${c.id}" required><label th:for="'e5-' + ${c.id}" title="5 estrellas">★<span class="sr-only">5 estrellas</span></label><input type="radio" name="estrellas" value="4" th:id="'e4-' + ${c.id}" required><label th:for="'e4-' + ${c.id}" title="4 estrellas">★<span class="sr-only">4 estrellas</span></label><input type="radio" name="estrellas" value="3" th:id="'e3-' + ${c.id}" required><label th:for="'e3-' + ${c.id}" title="3 estrellas">★<span class="sr-only">3 estrellas</span></label><input type="radio" name="estrellas" value="2" th:id="'e2-' + ${c.id}" required><label th:for="'e2-' + ${c.id}" title="2 estrellas">★<span class="sr-only">2 estrellas</span></label><input type="radio" name="estrellas" value="1" th:id="'e1-' + ${c.id}" required><label th:for="'e1-' + ${c.id}" title="1 estrella">★<span class="sr-only">1 estrella</span></label></div></fieldset>
+        <input name="comentario" maxlength="300" placeholder="Cuéntanos tu experiencia (opcional)" aria-label="Comentario opcional">
+        <button class="primary">Enviar opinión</button>
+      </form>
+      <p class="done" th:if="${resenadas.contains(c.id)}">✓ Ya enviaste tu opinión. ¡Gracias!</p>
+      <details class="exdet" th:unless="${encuestadas.contains(c.id)}">
+        <summary>Responder encuesta de satisfacción</summary>
+        <form class="encform" th:action="@{/paciente/citas/{id}/encuesta(id=${c.id})}" method="post">
+          <label>Atención del doctor <select name="atencion" required><option value="">—</option><option value="5">5 · Excelente</option><option value="4">4 · Muy buena</option><option value="3">3 · Regular</option><option value="2">2 · Mala</option><option value="1">1 · Muy mala</option></select></label>
+          <label>Puntualidad <select name="puntualidad" required><option value="">—</option><option value="5">5 · Excelente</option><option value="4">4 · Muy buena</option><option value="3">3 · Regular</option><option value="2">2 · Mala</option><option value="1">1 · Muy mala</option></select></label>
+          <label>Instalaciones <select name="instalaciones" required><option value="">—</option><option value="5">5 · Excelente</option><option value="4">4 · Muy buena</option><option value="3">3 · Regular</option><option value="2">2 · Mala</option><option value="1">1 · Muy mala</option></select></label>
+          <input name="sugerencia" maxlength="300" placeholder="Sugerencia para mejorar (opcional)" aria-label="Sugerencia">
+          <button class="primary">Enviar encuesta</button>
+        </form>
+      </details>
+      <p class="done" th:if="${encuestadas.contains(c.id)}">✓ Encuesta respondida.</p>
+    </div>
+    <p class="empty" th:if="${#lists.isEmpty(historial)}">Cuando una cita sea atendida, aquí verás tu diagnóstico y tu receta, y podrás descargarla en PDF.</p>
+  </article>
+
+  <article class="panel">
+    <div class="panelhead"><div><h2>Mis datos</h2><p>Información de solo lectura</p></div></div>
+    <div class="datos">
+      <div>Nombre<strong th:text="${paciente.name}"></strong></div>
+      <div>DNI<strong th:text="${paciente.dni}"></strong></div>
+      <div>Teléfono<strong th:text="${paciente.phone}"></strong></div>
+      <div>Correo<strong th:text="${paciente.email != null} ? ${paciente.email} : '—'"></strong></div>
+      <div>Última visita<strong th:text="${#temporals.format(paciente.visit,'dd MMM yyyy')}"></strong></div>
+      <div th:if="${paciente.alergias != null}">Alergias<strong th:text="${paciente.alergias}"></strong></div>
+      <div th:if="${paciente.antecedentes != null}">Antecedentes<strong th:text="${paciente.antecedentes}"></strong></div>
+      <div th:if="${paciente.peso != null or paciente.talla != null}">Peso y talla<strong th:text="|${paciente.peso != null ? paciente.peso : '—'} kg · ${paciente.talla != null ? paciente.talla : '—'} cm|"></strong></div>
+    </div>
+  </article>
+</section>
+
+<footer class="bottom">© 2026 MedCare · Sistema de gestión de pacientes <span>Maqueta académica · Datos ficticios</span></footer>
+</main>
+<div th:replace="~{fragments :: avisos}"></div>
+<script th:src="@{/script.js}"></script>
+</body>
+</html>

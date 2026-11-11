@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MedCare | Doctor</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232864e8'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E"><link rel="stylesheet" th:href="@{/styles.css}"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2864e8"><link rel="apple-touch-icon" href="/img/icon-192.png"><script>(function(){var R=document.documentElement;try{var t=localStorage.getItem('medcare-tema');if(t)R.setAttribute('data-theme',t)}catch(e){}function sync(){var d=R.getAttribute('data-theme')==='dark';var b=document.querySelectorAll('[data-theme-toggle]');for(var i=0;i<b.length;i++){b[i].setAttribute('aria-pressed',String(d));var s=b[i].querySelector('span');if(s)s.textContent=d?'Modo claro':'Modo oscuro'}}document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('medcare-tema',n)}catch(x){}sync()});document.addEventListener('DOMContentLoaded',sync)})()</script></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<aside th:replace="~{fragments :: sidebarAdmin('doctores')}"></aside>
+<main id="contenido">
+<header>
+  <div class="crumb"><button th:replace="~{fragments :: menuBtn}"></button><span>Doctores　/　<strong><span th:text="${doctor.id == null} ? 'Nuevo doctor' : 'Editar doctor'">Nuevo doctor</span></strong></span></div>
+  <span id="today"></span>
+</header>
+
+<div class="formwrap">
+<form class="dialog" th:action="@{/admin/doctores/save}" th:object="${doctor}" method="post" novalidate>
+  <input type="hidden" th:field="*{id}">
+  <div class="panelhead"><div><small class="kicker">EQUIPO MÉDICO</small><h2 th:text="${doctor.id == null} ? 'Nuevo doctor' : 'Editar doctor'">Nuevo doctor</h2></div><a class="x" th:href="@{/admin/doctores}" aria-label="Cerrar y volver a la lista">×</a></div>
+
+  <label>Nombre
+    <input th:field="*{nombre}" th:classappend="${#fields.hasErrors('nombre')} ? 'invalid'" th:readonly="${doctor.id != null}" placeholder="Ej. Dra. Pérez" autocomplete="off">
+    <small class="err" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></small>
+  </label>
+  <label>Especialidad
+    <select th:field="*{especialidad}" th:classappend="${#fields.hasErrors('especialidad')} ? 'invalid'">
+      <option value="">Elige una especialidad</option>
+      <option th:each="e : ${especialidades}" th:value="${e}" th:text="${e}">Cardiología</option>
+    </select>
+    <small class="err" th:if="${#fields.hasErrors('especialidad')}" th:errors="*{especialidad}"></small>
+  </label>
+  <label>Descripción corta
+    <input th:field="*{descripcion}" th:classappend="${#fields.hasErrors('descripcion')} ? 'invalid'" maxlength="200" placeholder="Ej. Control del corazón y la presión">
+    <small class="err" th:if="${#fields.hasErrors('descripcion')}" th:errors="*{descripcion}"></small>
+  </label>
+  <label>Foto (nombre del archivo)
+    <input th:field="*{foto}" th:classappend="${#fields.hasErrors('foto')} ? 'invalid'" placeholder="ramirez.jpg" autocomplete="off">
+    <small class="hint">Guarda la imagen en <code>src/main/resources/static/img/doctores</code> y escribe aquí su nombre. Si lo dejas vacío se usa una silueta.</small>
+    <small class="err" th:if="${#fields.hasErrors('foto')}" th:errors="*{foto}"></small>
+  </label>
+
+  <fieldset class="dias">
+    <legend>Días de atención</legend>
+    <label class="chk" th:each="nombre, st : ${nombresDias}"><input type="checkbox" name="diasSel" th:value="${st.count}" th:checked="${doctor.atiendeNumero(st.count)}"><span th:text="${nombre}">Lunes</span></label>
+    <small class="err" th:if="${#fields.hasErrors('dias')}" th:errors="*{dias}"></small>
+  </fieldset>
+
+  <div class="two">
+    <label>Hora de inicio<input type="time" th:field="*{inicio}" th:classappend="${#fields.hasErrors('inicio')} ? 'invalid'"><small class="err" th:if="${#fields.hasErrors('inicio')}" th:errors="*{inicio}"></small></label>
+    <label>Hora de fin<input type="time" th:field="*{fin}" th:classappend="${#fields.hasErrors('fin')} ? 'invalid'"><small class="err" th:if="${#fields.hasErrors('fin')}" th:errors="*{fin}"></small></label>
+  </div>
+  <div class="two">
+    <label>Pausa (almuerzo) desde<input type="time" th:field="*{pausaInicio}" th:classappend="${#fields.hasErrors('pausaInicio')} ? 'invalid'"></label>
+    <label>Pausa hasta<input type="time" th:field="*{pausaFin}" th:classappend="${#fields.hasErrors('pausaFin')} ? 'invalid'"><small class="err" th:if="${#fields.hasErrors('pausaFin')}" th:errors="*{pausaFin}"></small></label>
+  </div>
+  <label>Duración de cada cita (minutos)
+    <input type="number" th:field="*{duracion}" th:classappend="${#fields.hasErrors('duracion')} ? 'invalid'" min="10" max="120" step="5">
+    <small class="err" th:if="${#fields.hasErrors('duracion')}" th:errors="*{duracion}"></small>
+  </label>
+  <label>Consultorio preferido
+    <select th:field="*{consultorio}" th:classappend="${#fields.hasErrors('consultorio')} ? 'invalid'">
+      <option value="">Sin preferencia (se asigna uno libre)</option>
+      <option th:each="s : ${consultorios}" th:value="${s}" th:text="${s}">C-101</option>
+    </select>
+    <small class="hint">Si está ocupado a esa hora, la cita usa otro consultorio libre.</small>
+    <small class="err" th:if="${#fields.hasErrors('consultorio')}" th:errors="*{consultorio}"></small>
+  </label>
+  <label>Tarifa de la consulta (S/)
+    <input type="number" th:field="*{precio}" th:classappend="${#fields.hasErrors('precio')} ? 'invalid'" min="0" max="2000" step="5">
+    <small class="err" th:if="${#fields.hasErrors('precio')}" th:errors="*{precio}"></small>
+  </label>
+  <label class="chk solo-chk"><input type="checkbox" th:field="*{activo}"><span>Visible en la web y disponible para reservas</span></label>
+
+  <p class="notice" th:if="${doctor.id == null}">Al crear el doctor se crea también su acceso: usuario = su apellido, clave inicial <b>doctor123</b> (la cambia al ingresar).</p>
+  <p class="notice" th:unless="${doctor.id == null}">El nombre no se puede cambiar porque las citas ya registradas lo usan. Los cambios de horario no mueven citas existentes.</p>
+  <div class="actions"><a class="secondary" th:href="@{/admin/doctores}">Cancelar</a><button class="primary">Guardar doctor</button></div>
+</form>
+</div>
+
+<footer class="bottom">© 2026 MedCare · Sistema de gestión de pacientes <span>Maqueta académica · Datos ficticios</span></footer>
+</main>
+<div th:replace="~{fragments :: avisos}"></div>
+<script th:src="@{/script.js}"></script>
+</body>
+</html>

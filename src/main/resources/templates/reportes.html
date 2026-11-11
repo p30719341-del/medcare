@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MedCare | Reportes</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232864e8'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E"><link rel="stylesheet" th:href="@{/styles.css}"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2864e8"><link rel="apple-touch-icon" href="/img/icon-192.png"><script>(function(){var R=document.documentElement;try{var t=localStorage.getItem('medcare-tema');if(t)R.setAttribute('data-theme',t)}catch(e){}function sync(){var d=R.getAttribute('data-theme')==='dark';var b=document.querySelectorAll('[data-theme-toggle]');for(var i=0;i<b.length;i++){b[i].setAttribute('aria-pressed',String(d));var s=b[i].querySelector('span');if(s)s.textContent=d?'Modo claro':'Modo oscuro'}}document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('medcare-tema',n)}catch(x){}sync()});document.addEventListener('DOMContentLoaded',sync)})()</script></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<aside th:replace="~{fragments :: sidebarAdmin('reportes')}"></aside>
+<main id="contenido">
+<header>
+  <div class="crumb"><button th:replace="~{fragments :: menuBtn}"></button><span>Citas　/　<strong>Reportes</strong></span></div>
+  <span id="today"></span>
+</header>
+
+<section class="heading">
+  <div><small class="kicker">ESTADÍSTICAS</small><h1>Reportes</h1><p>Resumen de la actividad de la clínica a partir de las citas registradas.</p></div>
+  <div class="head-acts"><a class="secondary" th:href="@{/admin/reportes/resumen.pdf(desde=${fDesde},hasta=${fHasta},doctor=${fDoctor})}" target="_blank" rel="noopener">Descargar PDF</a><button type="button" class="secondary" onclick="window.print()">Imprimir</button></div>
+</section>
+
+<article class="panel">
+  <form class="filtros" method="get" th:action="@{/admin/reportes}" role="search" aria-label="Filtros del reporte">
+    <label>Desde<input type="date" name="desde" th:value="${fDesde}"></label>
+    <label>Hasta<input type="date" name="hasta" th:value="${fHasta}"></label>
+    <label>Doctor
+      <select name="doctor">
+        <option value="">Todos</option>
+        <option th:each="d : ${listaDoctores}" th:value="${d.nombre}" th:text="${d.nombre}" th:selected="${d.nombre == fDoctor}">Dr. Ramírez</option>
+      </select>
+    </label>
+    <button class="primary">Aplicar</button>
+    <a class="secondary" th:href="@{/admin/reportes}">Quitar filtros</a>
+  </form>
+  <nav class="chips" aria-label="Atajos de fechas">
+    <a th:href="@{/admin/reportes(desde=${iniMes},hasta=${hoy},doctor=${fDoctor})}">Este mes</a>
+    <a th:href="@{/admin/reportes(desde=${ini30},hasta=${hoy},doctor=${fDoctor})}">Últimos 30 días</a>
+    <a th:href="@{/admin/reportes(desde=${iniAnio},hasta=${hoy},doctor=${fDoctor})}">Este año</a>
+  </nav>
+  <p class="notice" th:if="${filtrado}">Mostrando solo lo filtrado (los gráficos de “citas por mes” y la comparación con el mes anterior siguen mirando los últimos meses del doctor elegido).</p>
+</article>
+
+<section class="stats trend" aria-label="Comparación con el mes anterior">
+  <article th:each="t : ${tendencias}" th:classappend="${t.clase}">
+    <label th:text="${t.titulo}">Citas este mes</label>
+    <div class="number" th:text="${t.valor}">0</div>
+    <small class="delta" th:text="${t.detalle}">Sin datos</small>
+  </article>
+</section>
+
+<section class="stats" aria-label="Totales">
+  <article><label>Total de citas</label><div class="number" th:text="${totalCitas}">0</div><small>Registradas en el sistema</small></article>
+  <article><label>Atendidas</label><div class="number" th:text="${totalAtendidas}">0</div><small>Con diagnóstico y receta</small></article>
+  <article><label>Pendientes</label><div class="number" th:text="${totalPendientes}">0</div><small>Por confirmar</small></article>
+  <article><label>Canceladas</label><div class="number" th:text="${totalCanceladas}">0</div><small>Horarios liberados</small></article>
+</section>
+
+<section class="stats two-stats" aria-label="Ingresos">
+  <article><label>Ingresos cobrados</label><div class="number" th:text="|S/ ${cobrado}|">S/ 0</div><small>Citas marcadas como pagadas</small></article>
+  <article><label>Atendidas por cobrar</label><div class="number" th:text="|S/ ${porCobrar}|">S/ 0</div><small>Falta registrar el pago</small></article>
+</section>
+
+<section class="grid2">
+  <article class="panel">
+    <div class="panelhead"><div><h2>Citas por especialidad</h2><p>Sin contar las canceladas.</p></div></div>
+    <div class="bars">
+      <div class="bar" th:each="b : ${porEspecialidad}">
+        <span class="bl" th:text="${b.etiqueta}">Etiqueta</span>
+        <span class="bt"><i th:style="|width:${b.pct}%|"></i></span>
+        <b th:text="${b.valor}">0</b>
+        <small th:if="${b.detalle != ''}" th:text="${b.detalle}">detalle</small>
+      </div>
+    </div>
+  </article>
+  <article class="panel">
+    <div class="panelhead"><div><h2>Citas por estado</h2><p>Cómo se reparten todas las citas.</p></div></div>
+    <div class="donut-wrap">
+      <div class="donut" th:style="${donut}" role="img" th:attr="aria-label=|Total de citas: ${totalCitas}|"><span><b th:text="${totalCitas}">0</b><small>citas</small></span></div>
+      <ul class="dleg">
+        <li th:each="b : ${porEstado}"><i th:style="|background:${b.color}|"></i><span th:text="${b.etiqueta}">Estado</span><b th:text="${b.valor}">0</b></li>
+      </ul>
+    </div>
+  </article>
+  <article class="panel">
+    <div class="panelhead"><div><h2>Citas por mes</h2><p>Últimos 6 meses, sin contar las canceladas.</p></div></div>
+    <div class="bars">
+      <div class="bar" th:each="b : ${porMes}">
+        <span class="bl" th:text="${b.etiqueta}">Etiqueta</span>
+        <span class="bt"><i th:style="|width:${b.pct}%|"></i></span>
+        <b th:text="${b.valor}">0</b>
+        <small th:if="${b.detalle != ''}" th:text="${b.detalle}">detalle</small>
+      </div>
+    </div>
+  </article>
+  <article class="panel">
+    <div class="panelhead"><div><h2>Citas por doctor</h2><p>Con el promedio de estrellas de sus reseñas.</p></div></div>
+    <div class="bars">
+      <div class="bar" th:each="b : ${porDoctor}">
+        <span class="bl" th:text="${b.etiqueta}">Etiqueta</span>
+        <span class="bt"><i th:style="|width:${b.pct}%|"></i></span>
+        <b th:text="${b.valor}">0</b>
+        <small th:if="${b.detalle != ''}" th:text="${b.detalle}">detalle</small>
+      </div>
+    </div>
+  </article>
+  <article class="panel">
+    <div class="panelhead"><div><h2>Horas pico</h2><p>Citas por hora de inicio.</p></div></div>
+    <div class="bars">
+      <div class="bar" th:each="b : ${porHora}">
+        <span class="bl" th:text="${b.etiqueta}">Etiqueta</span>
+        <span class="bt"><i th:style="|width:${b.pct}%|"></i></span>
+        <b th:text="${b.valor}">0</b>
+        <small th:if="${b.detalle != ''}" th:text="${b.detalle}">detalle</small>
+      </div>
+    </div>
+  </article>
+  <article class="panel">
+    <div class="panelhead"><div><h2>Días más fuertes</h2><p>Citas por día de la semana.</p></div></div>
+    <div class="bars">
+      <div class="bar" th:each="b : ${porDia}">
+        <span class="bl" th:text="${b.etiqueta}">Etiqueta</span>
+        <span class="bt"><i th:style="|width:${b.pct}%|"></i></span>
+        <b th:text="${b.valor}">0</b>
+        <small th:if="${b.detalle != ''}" th:text="${b.detalle}">detalle</small>
+      </div>
+    </div>
+  </article>
+  <article class="panel">
+    <div class="panelhead"><div><h2>Cancelaciones por doctor</h2><p>Cuántas citas se cancelaron y qué porcentaje es de sus citas.</p></div></div>
+    <div class="bars">
+      <div class="bar" th:each="b : ${cancelPorDoctor}">
+        <span class="bl" th:text="${b.etiqueta}">Etiqueta</span>
+        <span class="bt"><i th:style="|width:${b.pct}%|"></i></span>
+        <b th:text="${b.valor}">0</b>
+        <small th:if="${b.detalle != ''}" th:text="${b.detalle}">detalle</small>
+      </div>
+    </div>
+  </article>
+</section>
+
+<article class="panel">
+  <div class="panelhead"><div><h2>Comparación entre doctores</h2><p>Citas, asistencia, ingresos y opinión de los pacientes (según los filtros).</p></div></div>
+  <div class="scroll"><table>
+    <caption class="sr-only">Comparación entre doctores</caption>
+    <thead><tr><th scope="col">DOCTOR</th><th scope="col">CITAS</th><th scope="col">ATENDIDAS</th><th scope="col">CANCELADAS</th><th scope="col">NO ASISTIÓ</th><th scope="col">ASISTENCIA</th><th scope="col">COBRADO</th><th scope="col">RESEÑAS</th><th scope="col">ENCUESTA</th></tr></thead>
+    <tbody>
+      <tr th:each="c : ${comparativo}">
+        <td data-label="Doctor"><strong th:text="${c.doctor}">Dr. Ramírez</strong></td>
+        <td data-label="Citas" th:text="${c.total}">0</td>
+        <td data-label="Atendidas" th:text="${c.atendidas}">0</td>
+        <td data-label="Canceladas" th:text="${c.canceladas}">0</td>
+        <td data-label="No asistió" th:text="${c.noAsistio}">0</td>
+        <td data-label="Asistencia" th:text="${c.asistencia &lt; 0} ? '—' : ${c.asistencia} + ' %'">—</td>
+        <td data-label="Cobrado" th:text="|S/ ${c.cobrado}|">S/ 0</td>
+        <td data-label="Reseñas" th:text="${c.resena}">—</td>
+        <td data-label="Encuesta" th:text="${c.encuesta}">—</td>
+      </tr>
+    </tbody>
+  </table></div>
+</article>
+
+<footer class="bottom">© 2026 MedCare · Sistema de gestión de pacientes <span>Maqueta académica · Datos ficticios</span></footer>
+</main>
+<div th:replace="~{fragments :: avisos}"></div>
+<script th:src="@{/script.js}"></script>
+</body>
+</html>

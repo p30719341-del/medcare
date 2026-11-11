@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MedCare | Días bloqueados</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232864e8'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E"><link rel="stylesheet" th:href="@{/styles.css}"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2864e8"><link rel="apple-touch-icon" href="/img/icon-192.png"><script>(function(){var R=document.documentElement;try{var t=localStorage.getItem('medcare-tema');if(t)R.setAttribute('data-theme',t)}catch(e){}function sync(){var d=R.getAttribute('data-theme')==='dark';var b=document.querySelectorAll('[data-theme-toggle]');for(var i=0;i<b.length;i++){b[i].setAttribute('aria-pressed',String(d));var s=b[i].querySelector('span');if(s)s.textContent=d?'Modo claro':'Modo oscuro'}}document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('medcare-tema',n)}catch(x){}sync()});document.addEventListener('DOMContentLoaded',sync)})()</script></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<aside th:replace="~{fragments :: sidebarDoctor('bloqueos')}"></aside>
+<main id="contenido">
+<header>
+  <div class="crumb"><button th:replace="~{fragments :: menuBtn}"></button><span>Doctor　/　<strong>Días bloqueados</strong></span></div>
+  <span id="today"></span>
+</header>
+
+<section class="heading">
+  <div><small class="kicker">DISPONIBILIDAD</small><h1>Días bloqueados</h1><p>En los días que bloquees nadie podrá reservar contigo (vacaciones, congresos, emergencias).</p></div>
+</section>
+
+<section class="grid2">
+  <article class="panel">
+    <div class="panelhead"><div><h2>Bloquear un día</h2></div></div>
+    <form class="bform" th:action="@{/doctor/bloqueos}" method="post">
+      <label>Fecha<input type="date" name="fecha" required th:min="${hoy}"></label>
+      <label>Motivo (opcional)<input name="motivo" maxlength="120" placeholder="Ej. Congreso de cardiología"></label>
+      <button class="primary">Bloquear día</button>
+    </form>
+    <p class="notice">Si ya hay citas ese día no se cancelan solas: te avisaremos cuántas son y las cancelas desde tu agenda.</p>
+  </article>
+  <article class="panel">
+    <div class="panelhead"><div><h2>Próximos días bloqueados</h2></div></div>
+    <div class="appt" th:each="b : ${bloqueos}">
+      <div class="cita-date" aria-hidden="true"><div><b th:text="${#temporals.format(b.fecha,'dd')}">15</b><span th:text="${#temporals.format(b.fecha,'MMM')}">oct</span></div></div>
+      <div><strong th:text="${#temporals.format(b.fecha,'EEEE dd MMM yyyy')}">fecha</strong><small th:text="${b.motivo != null and b.motivo != ''} ? ${b.motivo} : 'Sin motivo'">Motivo</small></div>
+      <form th:action="@{/doctor/bloqueos/{id}/borrar(id=${b.id})}" method="post"><button class="btn-del">Quitar</button></form>
+    </div>
+    <p class="empty" th:if="${#lists.isEmpty(bloqueos)}">No tienes días bloqueados.</p>
+  </article>
+</section>
+
+<footer class="bottom">© 2026 MedCare · Sistema de gestión de pacientes <span>Maqueta académica · Datos ficticios</span></footer>
+</main>
+<div th:replace="~{fragments :: avisos}"></div>
+<script th:src="@{/script.js}"></script>
+</body>
+</html>

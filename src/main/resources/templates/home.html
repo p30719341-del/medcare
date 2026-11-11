@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MedCare | Reserva tu cita médica</title><meta name="description" content="Reserva tu cita médica en línea: elige especialidad, doctor y horario."><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%232864e8'/%3E%3Cpath d='M16 8v16M8 16h16' stroke='white' stroke-width='3.5' stroke-linecap='round'/%3E%3C/svg%3E"><meta name="_csrf" th:content="${_csrf.token}" content=""><meta name="_csrf_header" th:content="${_csrf.headerName}" content="X-CSRF-TOKEN"><link rel="stylesheet" th:href="@{/home.css}"><link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#2864e8"><link rel="apple-touch-icon" href="/img/icon-192.png"><script>(function(){var R=document.documentElement;try{var t=localStorage.getItem('medcare-tema');if(t)R.setAttribute('data-theme',t)}catch(e){}function sync(){var d=R.getAttribute('data-theme')==='dark';var b=document.querySelectorAll('[data-theme-toggle]');for(var i=0;i<b.length;i++){b[i].setAttribute('aria-pressed',String(d));var s=b[i].querySelector('span');if(s)s.textContent=d?'Modo claro':'Modo oscuro'}}document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-theme-toggle]');if(!b)return;var n=R.getAttribute('data-theme')==='dark'?'light':'dark';R.setAttribute('data-theme',n);try{localStorage.setItem('medcare-tema',n)}catch(x){}sync()});document.addEventListener('DOMContentLoaded',sync)})()</script></head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+
+<!-- Iconos de especialidades -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="ic-general" viewBox="0 0 24 24"><path d="M6 3v5a4 4 0 0 0 8 0V3"/><path d="M10 12v2a5 5 0 0 0 10 0v-1"/><circle cx="20" cy="11" r="2"/></symbol>
+  <symbol id="ic-cardio" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.5A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></symbol>
+  <symbol id="ic-odonto" viewBox="0 0 24 24"><path d="M8 3c-2.5 0-4 2-4 4.5 0 2 1 3 1.5 5 .5 2.5.8 8.5 3 8.5 1.6 0 1.5-4.5 3.5-4.5s1.9 4.5 3.5 4.5c2.2 0 2.5-6 3-8.5.5-2 1.5-3 1.5-5C20 5 18.5 3 16 3c-1.6 0-2.4.8-4 .8S9.6 3 8 3z"/></symbol>
+  <symbol id="ic-pediatria" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1 1.5 2.2 2.2 3.5 2.2s2.5-.7 3.5-2.2M9 9.5h.01M15 9.5h.01M12 3c1 0 2 .6 2 1.6"/></symbol>
+  <symbol id="ic-dermato" viewBox="0 0 24 24"><path d="M12 3s6 6.2 6 10.5A6 6 0 0 1 6 13.5C6 9.2 12 3 12 3z"/></symbol>
+  <symbol id="ic-gineco" viewBox="0 0 24 24"><circle cx="12" cy="9" r="5"/><path d="M12 14v7M9 18h6"/></symbol>
+</svg>
+
+<header class="top">
+  <div class="wrap bar">
+    <a class="logo" th:href="@{/}" aria-label="MedCare, inicio"><b>✚</b><span>MedCare</span></a>
+    <button class="burger" id="burger" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <nav id="nav" aria-label="Principal">
+      <a href="#especialidades" th:text="#{nav.esp}">Especialidades</a>
+      <a href="#doctores" th:text="#{nav.doc}">Doctores</a>
+      <a href="#como" th:text="#{nav.como}">Cómo funciona</a>
+      <a href="#solicitudes" th:text="#{nav.sol}">Solicitudes</a>
+      <a href="#preguntas" th:text="#{nav.preg}">Preguntas</a>
+      <a class="nav-login" th:if="${panelUrl == null}" th:href="@{/login}" th:text="#{nav.acceso}">Acceso pacientes</a>
+      <a class="nav-login" th:unless="${panelUrl == null}" th:href="@{${panelUrl}}" th:text="#{nav.panel}">Ir a mi panel</a>
+      <button type="button" class="theme-btn top-theme" data-theme-toggle aria-pressed="false" aria-label="Cambiar entre modo claro y oscuro"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A8.5 8.5 0 1 1 11.2 3a6.6 6.6 0 0 0 9.8 9.8z"/></svg><span>Modo oscuro</span></button>
+      <a class="lang-btn" th:href="@{/idioma(lang=${#locale.language == 'en' ? 'es' : 'en'})}" th:text="${#locale.language == 'en' ? 'ES' : 'EN'}" th:title="#{lang.cambiar}" title="Cambiar idioma">EN</a>
+      <a class="btn primary" href="#reservar" th:text="#{nav.reservar}">Reservar cita</a>
+    </nav>
+  </div>
+</header>
+
+<main id="contenido">
+
+<!-- ================= Inicio ================= -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <small class="kicker" th:text="#{hero.kicker}">CLÍNICA MEDCARE</small>
+      <h1>Tu cita médica, <em>en minutos</em>.</h1>
+      <p class="lead" th:text="#{hero.lead}">Elige la especialidad, el doctor y el horario que te acomode. Sin llamadas ni filas: recibes tu cita en tu portal de paciente.</p>
+      <div class="cta">
+        <a class="btn primary big" href="#reservar" th:text="#{hero.cta1}">Reservar mi cita</a>
+        <a class="btn ghost big" href="#especialidades" th:text="#{hero.cta2}">Ver especialidades</a>
+      </div>
+      <ul class="facts">
+        <li><b th:text="${#lists.size(especialidades)}">6</b><span>especialidades</span></li>
+        <li><b th:text="${#lists.size(doctores)}">8</b><span>doctores</span></li>
+        <li><b>Lun–Sáb</b><span>8:00 a 18:00</span></li>
+      </ul>
+    </div>
+    <div class="hero-art"><img th:src="@{/img/hero.svg}" src="img/hero.svg" alt="Calendario de citas con una doctora sonriente" width="640" height="520"></div>
+  </div>
+</section>
+
+<!-- ================= Especialidades ================= -->
+<section class="sec" id="especialidades">
+  <div class="wrap">
+    <div class="sec-head"><small class="kicker">ESPECIALIDADES</small><h2 th:text="#{esp.titulo}">Atención para toda la familia</h2><p th:text="#{esp.sub}">Elige una especialidad y mira sus doctores disponibles.</p></div>
+    <div class="cards">
+      <article class="card esp" th:each="e : ${especialidades}">
+        <span class="chip"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><use th:href="|#ic-${e.icono}|"></use></svg></span>
+        <h3 th:text="${e.nombre}">Medicina general</h3>
+        <p th:text="${e.descripcion}">Descripción</p>
+        <button type="button" class="more" th:data-esp="${e.nombre}">Reservar →</button>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Doctores ================= -->
+<section class="sec alt" id="doctores">
+  <div class="wrap">
+    <div class="sec-head"><small class="kicker" th:text="#{doc.kicker}">NUESTRO EQUIPO</small><h2 th:text="#{doc.titulo}">Conoce a los doctores</h2><p th:text="#{doc.sub}">Los nombres y perfiles son ficticios, creados para esta maqueta académica.</p></div>
+    <div class="docsearch"><label class="sr-only" for="docBuscar" th:text="#{doc.buscar.lbl}">Buscar</label><input id="docBuscar" type="search" autocomplete="off" th:placeholder="#{doc.buscar.ph}" placeholder="Busca por nombre, especialidad o síntoma (ej. dolor de cabeza, piel, niño)"><p class="docvacio" id="docVacio" hidden th:text="#{doc.buscar.vacio}">No encontramos doctores con esa búsqueda.</p></div>
+    <div class="filters" role="group" aria-label="Filtrar doctores por especialidad">
+      <button type="button" class="fchip" data-filter="" aria-pressed="true">Todos</button>
+      <button type="button" class="fchip" th:each="e : ${especialidades}" th:data-filter="${e.nombre}" th:text="${e.nombre}" aria-pressed="false">Especialidad</button>
+    </div>
+    <div class="docs">
+      <article class="doc" th:each="d : ${doctores}" th:data-esp="${d.especialidad}">
+        <img class="avatar" th:src="@{/img/doctores/{f}(f=${d.fotoArchivo})}" src="img/doctores/ramirez.jpg" th:alt="|Foto de ${d.nombre}|" alt="" width="96" height="96">
+        <div class="doc-body">
+          <h3 th:text="${d.nombre}">Dr. Ramírez</h3>
+          <span class="tag" th:text="${d.especialidad}">Especialidad</span>
+          <p class="rate" th:if="${ratings.get(d.nombre) != null}" th:with="r=${ratings.get(d.nombre)}"><span class="stars" aria-hidden="true" th:text="${r.estrellas}">★★★★★</span> <b th:text="${r.texto}">4,8</b> <small th:text="|(${r.cantidad})|">(3)</small><span class="sr-only" th:text="|Calificación ${r.texto} de 5 según ${r.cantidad} reseñas|"></span></p>
+          <p class="when" th:text="|${d.resumenDias()} · ${#temporals.format(d.inicio,'HH:mm')} a ${#temporals.format(d.fin,'HH:mm')}|">Lun–Sáb · 08:00 a 18:00</p>
+          <p th:text="${d.descripcion}">Descripción</p>
+          <button type="button" class="btn secondary small" th:data-doctor="${d.nombre}" th:data-esp="${d.especialidad}" th:text="#{doc.reservar}">Reservar con este doctor</button>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Opiniones (solo si ya hay reseñas con comentario) ================= -->
+<section class="sec" id="opiniones" th:if="${!#lists.isEmpty(resenas)}">
+  <div class="wrap">
+    <div class="sec-head"><small class="kicker">OPINIONES</small><h2>Lo que dicen los pacientes</h2><p>Reseñas enviadas desde el portal por pacientes con una cita ya atendida.</p></div>
+    <div class="rev-grid">
+      <figure class="rev" th:each="r : ${resenas}">
+        <div class="stars" aria-hidden="true" th:text="${r.estrellasTexto}">★★★★★</div>
+        <blockquote th:text="${r.comentario}">Comentario</blockquote>
+        <figcaption><b th:text="${r.autor}">María L.</b> · <span th:text="${r.doctor}">Dr. Ramírez</span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Cómo funciona ================= -->
+<section class="sec" id="como">
+  <div class="wrap">
+    <div class="sec-head"><small class="kicker" th:text="#{como.kicker}">CÓMO FUNCIONA</small><h2 th:text="#{como.titulo}">Reservar toma tres pasos</h2></div>
+    <ol class="steps">
+      <li><span class="n">1</span><h3 th:text="#{como.1t}">Elige doctor y horario</h3><p th:text="#{como.1p}">Selecciona la especialidad y mira al instante los horarios libres de cada doctor.</p></li>
+      <li><span class="n">2</span><h3 th:text="#{como.2t}">Déjanos tus datos</h3><p th:text="#{como.2p}">Solo necesitamos tu nombre, DNI y teléfono. Si es tu primera vez, creamos tu acceso.</p></li>
+      <li><span class="n">3</span><h3 th:text="#{como.3t}">Revisa tu cita</h3><p th:text="#{como.3p}">Queda pendiente hasta que la clínica la confirme. Verás el estado en tu portal.</p></li>
+    </ol>
+  </div>
+</section>
+
+<!-- ================= Solicitudes de atención (Laboratorio 12: modal + AJAX + imágenes) ================= -->
+<section class="sec sol" id="solicitudes">
+  <div class="wrap">
+    <div class="sol-hero">
+      <div class="sol-hero-copy">
+        <small class="kicker">SOLICITUDES DE ATENCIÓN</small>
+        <h2>¿Tienes una consulta o un problema? <em>Cuéntanos</em>.</h2>
+        <p>Envía tu solicitud en un minuto, adjunta una foto como evidencia si la tienes y mira el estado sin recargar la página.</p>
+        <div class="cta">
+          <button type="button" class="btn primary big" id="solAbrir" aria-haspopup="dialog">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Nueva solicitud</span>
+          </button>
+          <button type="button" class="btn ghost big" id="solRefrescar">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg><span>Actualizar lista</span>
+          </button>
+        </div>
+      </div>
+      <ol class="flow" aria-label="Flujo del usuario">
+        <li><span class="n">1</span><b>Abrir</b><small>Pulsa «Nueva solicitud»</small></li>
+        <li><span class="n">2</span><b>Completar</b><small>Datos y descripción</small></li>
+        <li><span class="n">3</span><b>Adjuntar</b><small>Foto con vista previa</small></li>
+        <li><span class="n">4</span><b>Ver</b><small>Aparece en la lista al instante</small></li>
+      </ol>
+    </div>
+
+    <div class="sol-bar">
+      <h3>Últimas solicitudes <span class="sol-count" id="solCount" hidden></span></h3>
+      <p class="sol-hint">Por privacidad solo se muestra el nombre abreviado; tu correo nunca aparece aquí.</p>
+    </div>
+
+    <div id="solEstado" class="sol-estado" role="status" aria-live="polite" hidden></div>
+    <div id="solLista" class="sol-grid" aria-busy="true"></div>
+  </div>
+
+  <!-- Modal accesible (elemento <dialog> nativo: foco atrapado, Esc para cerrar) -->
+  <dialog id="solModal" class="modal" aria-labelledby="solTitulo" aria-describedby="solDesc">
+    <form id="solForm" novalidate>
+      <header class="modal-head">
+        <div>
+          <h3 id="solTitulo">Nueva solicitud</h3>
+          <p id="solDesc">Los campos con <span aria-hidden="true">*</span><span class="sr-only">asterisco</span> son obligatorios.</p>
+        </div>
+        <button type="button" class="modal-x" id="solCerrar" aria-label="Cerrar formulario"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+      </header>
+
+      <div class="modal-body">
+        <div class="mfield">
+          <label for="solNombre">Nombre completo <span aria-hidden="true">*</span></label>
+          <input id="solNombre" name="nombre" autocomplete="name" maxlength="80" required placeholder="Ej. Ana Pérez" aria-describedby="solNombre-e">
+          <small class="err" id="solNombre-e" role="alert"></small>
+        </div>
+        <div class="mfield">
+          <label for="solCorreo">Correo electrónico <span aria-hidden="true">*</span></label>
+          <input id="solCorreo" name="correo" type="email" autocomplete="email" maxlength="100" required placeholder="tucorreo@ejemplo.com" aria-describedby="solCorreo-e">
+          <small class="err" id="solCorreo-e" role="alert"></small>
+        </div>
+        <div class="mfield">
+          <label for="solServicio">Tipo de servicio <span aria-hidden="true">*</span></label>
+          <select id="solServicio" name="servicio" required aria-describedby="solServicio-e">
+            <option value="">Elige un servicio</option>
+            <option th:each="e : ${especialidades}" th:value="${e.nombre}" th:text="${e.nombre}">Medicina general</option>
+            <option value="Otro">Otro</option>
+          </select>
+          <small class="err" id="solServicio-e" role="alert"></small>
+        </div>
+        <div class="mfield">
+          <label for="solDescripcion">Descripción <span aria-hidden="true">*</span></label>
+          <textarea id="solDescripcion" name="descripcion" rows="4" maxlength="500" required placeholder="Cuéntanos qué necesitas (mínimo 10 caracteres)" aria-describedby="solDescripcion-e solDescripcion-c"></textarea>
+          <div class="mrow"><small class="err" id="solDescripcion-e" role="alert"></small><small class="count" id="solDescripcion-c" aria-live="off">0 / 500</small></div>
+        </div>
+
+        <div class="mfield">
+          <span class="mlbl" id="solFotoLbl">Imagen de evidencia <em>(opcional)</em></span>
+          <input id="solFoto" name="evidencia" type="file" accept="image/png,image/jpeg" class="sr-only" aria-labelledby="solFotoLbl" aria-describedby="solFoto-e solFoto-h">
+          <div class="drop" id="solDrop" tabindex="0" role="button" aria-controls="solFoto" aria-label="Elegir una imagen JPG o PNG de hasta 2 MB">
+            <svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 16l4-4 4 4 3-3 5 5M4 4h16v16H4z"/><circle cx="9" cy="9" r="1.5"/></svg>
+            <p><b>Haz clic para elegir</b> o arrastra una imagen aquí</p>
+            <small id="solFoto-h">JPG o PNG · máximo 2 MB</small>
+          </div>
+          <figure class="prev" id="solPrev" hidden>
+            <img id="solPrevImg" alt="Vista previa de la imagen seleccionada">
+            <figcaption><b id="solPrevNom"></b><span id="solPrevTam"></span>
+              <small>Esto es solo una vista previa en tu navegador; la imagen se guarda cuando envías la solicitud.</small></figcaption>
+            <button type="button" class="btn ghost small" id="solQuitar">Quitar</button>
+          </figure>
+          <small class="err" id="solFoto-e" role="alert"></small>
+        </div>
+
+        <div class="banner err-banner" id="solError" role="alert" hidden></div>
+      </div>
+
+      <footer class="modal-foot">
+        <button type="button" class="btn ghost" id="solCancelar">Cancelar</button>
+        <button type="submit" class="btn primary" id="solEnviar"><span class="spin" aria-hidden="true"></span><span class="lbl-t">Enviar solicitud</span></button>
+      </footer>
+    </form>
+  </dialog>
+
+  <div class="toast" id="solToast" role="status" aria-live="polite" hidden></div>
+</section>
+
+<!-- ================= Reserva ================= -->
+<section class="sec alt" id="reservar">
+  <div class="wrap">
+    <div class="sec-head"><small class="kicker" th:text="#{res.kicker}">RESERVA EN LÍNEA</small><h2 th:text="#{res.titulo}">Reserva tu cita</h2><p th:text="#{res.sub}">Atendemos de lunes a sábado. Puedes reservar desde 1 hora antes hasta 30 días adelante.</p></div>
+    <div class="okcard" role="status" th:if="${esperaMsg}"><span class="okico"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span><div><h3>Estás en la lista de espera</h3><p th:text="${esperaMsg}">Mensaje</p></div></div>
+    <div class="errcard" role="alert" th:if="${esperaError}"><p th:text="${esperaError}">Error</p></div>
+
+    <div class="okcard" id="reservaOk" role="status" th:if="${reserva != null}">
+      <span class="okico"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
+      <div>
+        <h3 th:text="#{res.ok}">¡Cita reservada!</h3>
+        <p th:text="|${reserva.cita.paciente.name}, tu cita de ${reserva.cita.especialidad} con ${reserva.cita.doctor} es el ${#temporals.format(reserva.cita.fecha,'EEEE dd MMM yyyy')} a las ${#temporals.format(reserva.cita.hora,'HH:mm')} h.|"></p>
+        <p>Estado: <span class="wait">Pendiente de confirmación</span></p>
+        <p class="acc" th:if="${reserva.cuentaNueva}" th:text="|Ya creamos tu acceso al portal. Usuario: ${reserva.cita.paciente.dni} · clave inicial: tu mismo DNI (al ingresar te pediremos crear una nueva).|"></p>
+        <p class="acc" th:unless="${reserva.cuentaNueva}">Puedes ver tu cita ingresando al portal con tu DNI.</p>
+        <a class="btn primary small" th:href="@{/login}">Ir al portal de pacientes</a>
+      </div>
+    </div>
+
+    <div class="rv-grid">
+      <form class="rv-form" id="rvForm" th:action="@{/reservar}" th:object="${form}" method="post" novalidate>
+        <fieldset>
+          <legend><span class="n">1</span><span th:text="#{res.paso1}">Elige tu cita</span></legend>
+          <div class="two">
+            <label for="especialidad">Especialidad
+              <select th:field="*{especialidad}" th:classappend="${#fields.hasErrors('especialidad')} ? 'invalid'">
+                <option value="">Elige una especialidad</option>
+                <option th:each="e : ${especialidades}" th:value="${e.nombre}" th:text="${e.nombre}">Medicina general</option>
+              </select>
+              <small class="err" th:if="${#fields.hasErrors('especialidad')}" th:errors="*{especialidad}"></small>
+            </label>
+            <label for="doctor">Doctor
+              <select th:field="*{doctor}" th:classappend="${#fields.hasErrors('doctor')} ? 'invalid'">
+                <option value="">Elige un doctor</option>
+                <option th:each="d : ${doctores}" th:value="${d.nombre}" th:text="${d.nombre}" th:data-esp="${d.especialidad}" th:data-precio="${d.precio}">Dr. Ramírez</option>
+              </select>
+              <small class="err" th:if="${#fields.hasErrors('doctor')}" th:errors="*{doctor}"></small>
+            </label>
+          </div>
+          <label for="fecha">Fecha
+            <input type="date" th:field="*{fecha}" th:min="${minFecha}" th:max="${maxFecha}" th:classappend="${#fields.hasErrors('fecha')} ? 'invalid'">
+            <small class="err" th:if="${#fields.hasErrors('fecha')}" th:errors="*{fecha}"></small>
+          </label>
+          <div class="field">
+            <span class="lbl" id="slotsLbl">Horario</span>
+            <div class="slots" id="slots" role="group" aria-labelledby="slotsLbl" th:data-url="@{/reservar/horas}" th:data-sel="${form.hora}"><p class="slots-msg">Elige un doctor y una fecha para ver los horarios libres.</p></div>
+            <input type="hidden" th:field="*{hora}">
+            <small class="err" th:if="${#fields.hasErrors('hora')}" th:errors="*{hora}"></small>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend><span class="n">2</span><span th:text="#{res.paso2}">Tus datos</span></legend>
+          <label for="nombre">Nombre completo
+            <input th:field="*{nombre}" th:classappend="${#fields.hasErrors('nombre')} ? 'invalid'" autocomplete="name" placeholder="Ej. Ana Pérez">
+            <small class="err" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></small>
+          </label>
+          <div class="two">
+            <label for="dni">DNI
+              <input th:field="*{dni}" th:classappend="${#fields.hasErrors('dni')} ? 'invalid'" maxlength="8" inputmode="numeric" autocomplete="off" placeholder="8 dígitos">
+              <small class="err" th:if="${#fields.hasErrors('dni')}" th:errors="*{dni}"></small>
+            </label>
+            <label for="telefono">Teléfono
+              <input th:field="*{telefono}" th:classappend="${#fields.hasErrors('telefono')} ? 'invalid'" type="tel" autocomplete="tel" placeholder="987 654 321">
+              <small class="err" th:if="${#fields.hasErrors('telefono')}" th:errors="*{telefono}"></small>
+            </label>
+          </div>
+          <div class="field">
+            <span class="lbl" id="modLbl">¿Cómo quieres atenderte?</span>
+            <div class="seg" role="radiogroup" aria-labelledby="modLbl">
+              <label><input type="radio" th:field="*{modalidad}" value="Presencial"><span>Presencial</span></label>
+              <label><input type="radio" th:field="*{modalidad}" value="Virtual"><span>Videollamada</span></label>
+            </div>
+            <small class="hint">Con videollamada recibes un enlace único para conectarte; no necesitas ir a la clínica.</small>
+          </div>
+          <label for="familiar">¿La cita es para un familiar? (opcional)
+            <input th:field="*{familiar}" maxlength="60" placeholder="Ej. Mateo, mi hijo de 6 años">
+          </label>
+          <label for="email">Correo (opcional)
+            <input th:field="*{email}" th:classappend="${#fields.hasErrors('email')} ? 'invalid'" type="email" autocomplete="email" placeholder="tucorreo@ejemplo.com">
+            <small class="err" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+          </label>
+          <p class="note">Si dejas tu correo te avisamos cuando tu cita sea confirmada o cambie. Usa datos ficticios: esta es una maqueta académica.</p>
+        </fieldset>
+
+        <button class="btn primary big full" type="submit" th:text="#{res.btn}">Confirmar reserva</button>
+      </form>
+
+      <form id="esperaForm" th:action="@{/espera}" method="post" hidden>
+        <input type="hidden" name="doctor"><input type="hidden" name="fecha"><input type="hidden" name="nombre">
+        <input type="hidden" name="dni"><input type="hidden" name="telefono"><input type="hidden" name="email">
+      </form>
+
+      <aside class="rv-sum" aria-label="Resumen de tu cita">
+        <h3 th:text="#{res.resumen}">Resumen de tu cita</h3>
+        <dl>
+          <div><dt>Especialidad</dt><dd id="sEsp">—</dd></div>
+          <div><dt>Doctor</dt><dd id="sDoc">—</dd></div>
+          <div><dt>Fecha</dt><dd id="sFecha">—</dd></div>
+          <div><dt>Hora</dt><dd id="sHora">—</dd></div>
+          <div><dt>Tarifa</dt><dd id="sPrecio">—</dd></div>
+        </dl>
+        <p class="note">Tu cita quedará <b>pendiente</b> hasta que la clínica la confirme.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ================= Preguntas ================= -->
+<section class="sec" id="preguntas">
+  <div class="wrap narrow">
+    <div class="sec-head"><small class="kicker" th:text="#{faq.kicker}">PREGUNTAS FRECUENTES</small><h2 th:text="#{faq.titulo}">Antes de reservar</h2></div>
+    <details><summary th:text="#{faq.1q}">¿La cita queda confirmada al instante?</summary><p th:utext="#{faq.1a}">Queda como <b>Pendiente</b> hasta que la clínica la confirme. Puedes ver el estado en tu portal de paciente.</p></details>
+    <details><summary th:text="#{faq.2q}">¿Cómo veo mi cita después de reservar?</summary><p th:utext="#{faq.2a}">Ingresa a <b>Acceso pacientes</b> con tu DNI como usuario. Si es tu primera reserva, tu clave inicial es tu mismo DNI y el sistema te pedirá cambiarla.</p></details>
+    <details><summary th:text="#{faq.3q}">¿Cuál es el horario de atención?</summary><p th:text="#{faq.3a}">Cada doctor tiene sus propios días y horas (los ves en su tarjeta). Al elegir doctor y fecha solo aparecen los turnos libres.</p></details>
+    <details><summary th:text="#{faq.4q}">¿Puedo cancelar o cambiar mi cita?</summary><p th:text="#{faq.4a}">Sí. Desde tu portal de paciente puedes reprogramarla o cancelarla hasta 2 horas antes. Si dejaste tu correo, te avisamos del cambio.</p></details>
+    <details><summary th:text="#{faq.5q}">¿Con cuánta anticipación puedo reservar?</summary><p th:text="#{faq.5a}">Desde 1 hora antes de la cita y hasta 30 días hacia adelante.</p></details>
+    <details><summary th:text="#{faq.6q}">¿Son datos reales?</summary><p th:text="#{faq.6a}">No. MedCare es una maqueta académica: los doctores, pacientes y citas son ficticios. No ingreses datos personales reales.</p></details>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-row">
+    <a class="logo" th:href="@{/}"><b>✚</b><span>MedCare</span></a>
+    <p th:text="#{foot.p1}">© 2026 MedCare · Sistema de gestión de pacientes</p>
+    <p th:text="#{foot.p2}">Maqueta académica · Datos ficticios</p>
+  </div>
+</footer>
+
+<script th:src="@{/home.js}"></script>
+<script th:src="@{/app.js}"></script>
+</body>
+</html>
